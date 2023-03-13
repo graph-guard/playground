@@ -1,0 +1,285 @@
+:root
+	color-scheme: light
+	--trans-dur: 200ms
+	--trans-easing: cubic-bezier(0.22, 0.61, 0.36, 1)
+	--trans: var(--trans-dur) var(--trans-easing)
+
+	--nav-closed-width: 5rem
+
+	--splitter-horiontal: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 28 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle fill='%23000' cx='2' cy='2' r='2'/%3E%3Ccircle fill='%23000' cx='14' cy='2' r='2'/%3E%3Ccircle fill='%23000' cx='26' cy='2' r='2'/%3E%3C/svg%3E") 
+	--splitter-vertical: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 4 28' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle fill='%23000' cx='2' cy='2' r='2'/%3E%3Ccircle fill='%23000' cx='2' cy='14' r='2'/%3E%3Ccircle fill='%23000' cx='2' cy='26' r='2'/%3E%3C/svg%3E")
+
+	// Breakpoints :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--BP-mobile: 576px
+	--BP-tablet: 768px
+	--BP-small-desk: 992px
+	--BP-desktop: 1200px
+	--BP-4k: 1400px
+
+	// Element indexing ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--idx-nav: 50
+	--idx-overlays: 75
+	--idx-menus: 80
+	--idx-toasts: 90
+	--idx-loader: 100
+
+	// Backgrounds :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	// --page-bg represents the background color
+	--page-bg: 245, 245, 245
+	// --box-bg represents a container in contrast to the background color
+	--box-bg: 255, 255, 255
+
+	--box-rounding: 0.5rem
+	--box-border: none
+	--box-shadow: var(--shadow-contrast), 0 4px 10px var(--shadow-clr), 0 1px 2px var(--shadow-clr)
+
+	--overlay-bg: rgba(0, 0, 0, 0.3)
+
+	--bg-contrast: #000
+
+	// Typography ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--font-heading-stack: 'Inter', sans-serif
+	--font-heading-style: normal
+	--font-heading-weight: 400
+	--font-heading-line-height: 1.25
+	--font-heading-clr: 0, 0, 0
+
+	--font-base-stack: var(--font-heading-stack)
+	--font-base-style: normal
+	--font-base-weight: 400
+	--font-base-size: 14px
+	--font-line-height: 1.5
+	--font-base-clr: 100, 110, 100
+
+	--font-code-stack: 'Fira Code', 'Cascadia Code', Consolas, monospace
+
+	// Border ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--border-clr: rgba(var(--font-base-clr), 0.1)
+	--separator-top: solid 1px rgba(var(--font-base-clr), 0.15)
+	--separator-bot: none
+
+	// Shadow ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--shadow-contrast: 0 0 1px rgba(0,0,0, 0.1)
+	--shadow-clr: rgba(0,0,0, 0.1)
+	--shadow-darker-clr: rgba(0,0,0, 0.2)
+	--shadow-dark-clr: rgba(0,0,0, 0.3)
+
+	// Modals ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--modal-bg: rgb(var(--box-bg))
+	--modal-shadow: var(--shadow-contrast), 0 8px 12px -6px var(--shadow-dark-clr), 0 10px 30px var(--shadow-clr)
+	--modal-rounding: 1rem
+	--modal-border: solid 0 transparent
+
+	// Toasts ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--toast-bg: rgb(var(--box-bg))
+	--toast-shadow: var(--shadow-contrast), 0 3px 10px var(--shadow-darker-clr)
+
+	// Tooltips ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--tooltip-bg: #000
+	--tooltip-font: #fff
+	--tooltip-rounding: 0.25rem
+	--tooltip-shadow: var(--shadow-contrast), 0 2px 8px var(--shadow-darker-clr)
+
+	// Color :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--clr-yellow: 255, 214, 0
+	--clr-yellow-brighter: 255, 255, 82
+	--clr-yellow-darker: 199, 165, 0
+
+	--clr-orange: 255, 145, 0
+	--clr-orange-brighter: 255, 194, 70
+	--clr-orange-darker: 197, 98, 0
+
+	--clr-red: 255, 0, 0
+	--clr-red-brighter: 255, 97, 100
+	--clr-red-darker: 196, 0, 0
+
+	--clr-green: 0, 200, 83
+	--clr-green-brighter: 94, 252, 130
+	--clr-green-darker: 0, 150, 36
+
+	--clr-blue: 41, 98, 255
+	--clr-blue-brighter: 118, 143, 255
+	--clr-blue-darker: 0, 57, 203
+
+	--clr-accent: 0, 153, 102
+	--clr-accent-brighter: 117, 200, 156
+	--clr-accent-darker: 0, 113, 75
+
+	// Input :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--inpt-rounding: 0.25rem
+	--inpt-pdng: 0.5em
+
+	// Global Button :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--btn-rounding: 0.25rem
+	--btn-pdng: 0.75em
+	--btn-child-gap: 0.75em
+	--btn-font-contrast: 0 1px 0 rgba(0,0,0, 0.25)
+	--btn-font-weight: 400
+
+	// Default Button ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--btn-bg: rgba(var(--font-base-clr), 0.05)
+	--btn-font: rgb(var(--font-heading-clr))
+	--btn-icon-primary: rgb(var(--font-heading-clr))
+	--btn-icon-secondary: rgba(var(--font-heading-clr), 0.1)
+	--btn-shadow: none
+	--btn-border: solid 0
+	--btn-border-clr: transparent
+	// hover
+	--btn-H-bg: rgba(var(--font-base-clr), 0.15)
+	--btn-H-font: var(--btn-font)
+	--btn-H-icon-primary: var(--btn-icon-primary)
+	--btn-H-icon-secondary: var(--btn-icon-secondary)
+	--btn-H-shadow: none
+	--btn-H-border-clr: transparent
+	// active
+	--btn-A-bg: var(--btn-H-bg)
+	--btn-A-font: var(--btn-font)
+	--btn-A-icon-primary: var(--btn-icon-primary)
+	--btn-A-icon-secondary: var(--btn-icon-secondary)
+	--btn-A-shadow: none
+	--btn-A-border-clr: transparent
+
+	// Button Group ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--btn-grp-divider: solid 1px rgba(var(--font-base-clr), 0.25)
+	--btn-grp-border: solid 1px
+	--btn-border-clr: rgba(var(--font-base-clr), 0.1)
+	--btn-grp-rounding: var(--btn-rounding)
+	--btn-grp-child-gap: var(--btn-child-gap)
+	--btn-grp-pdng: 0.75em 1.25em
+
+	--btn-grp-border-clr: var(--btn-border-clr)
+	--btn-grp-bg: rgba(var(--font-base-clr), 0.05)
+	--btn-grp-font: rgb(var(--font-heading-clr))
+	--btn-grp-shadow: none
+	--btn-grp-icon-primary: var(--btn-grp-font)
+	--btn-grp-icon-secondary: var(--btn-grp-font)
+
+	--btn-grp-H-border-clr: var(--btn-border-clr)
+	--btn-grp-H-bg: rgba(var(--font-base-clr), 0.15)
+	--btn-grp-H-font: var(--btn-grp-font)
+	--btn-grp-H-shadow: none
+	--btn-grp-H-icon-primary: var(--btn-grp-icon-primary)
+	--btn-grp-H-icon-secondary: var(--btn-grp-icon-secondary)
+
+	--btn-grp-A-border-clr: var(--btn-border-clr)
+	--btn-grp-A-bg: rgb(var(--clr-accent))
+	--btn-grp-A-font: #fff
+	--btn-grp-A-shadow: none
+	--btn-grp-A-icon-primary: var(--btn-grp-A-font)
+	--btn-grp-A-icon-secondary: var(--btn-grp-A-font)
+
+	--btn-grp-A-F-bg: rgb(var(--clr-accent-darker))
+	--btn-grp-A-F-shadow: 0 0 0 1px rgb(var(--box-bg)), 0 0 0 0.25em rgba(var(--clr-accent), 0.25)
+
+	// Switch ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--switch-bg: rgba(var(--font-base-clr), 0.1)
+	--switch-bg-border: rgba(var(--font-base-clr), 0.15)
+	--switch-nop: rgb(var(--box-bg))
+	--switch-nop-shadow: var(--shadow-contrast), 0 1px 3px var(--shadow-dark-clr)
+	--switch-H-nop-shadow: var(--shadow-contrast), 0 1px 3px var(--shadow-dark-clr), 0 0 0 0.5em var(--switch-H-outline)
+	--switch-A-nop-shadow: var(--shadow-contrast), 0 1px 3px var(--shadow-dark-clr)
+	--switch-A-H-nop-shadow: var(--shadow-contrast), 0 1px 3px var(--shadow-dark-clr), 0 0 0 0.5em var(--switch-A-H-outline)
+	--switch-H-outline: rgba(var(--font-base-clr), 0.1)
+	--switch-H-outline: rgba(var(--font-base-clr), 0.1)
+	--switch-A-bg: rgba(var(--clr-accent), 0.1)
+	--switch-A-bg-border: rgba(var(--clr-accent), 0.15)
+	--switch-A-nop: rgb(var(--clr-accent))
+	--switch-A-H-outline: rgba(var(--clr-accent), 0.15)
+
+	// Checkbox ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--checkbox-size: 1.5em
+	--checkbox-pdng: 0.25em
+	--checkbox-rounding: 0.25em
+	--checkbox-clr: var(--clr-accent)
+	--checkbox-border: solid 1px
+	--checkbox-bg: rgba(var(--font-base-clr), 0.1)
+	--checkbox-border-clr: rgba(var(--font-base-clr), 0.25)
+	--checkbox-shadow: none
+	--checkbox-symbole: rgb(var(--font-heading-clr))
+
+	--checkbox-H-bg: rgb(var(--box-bg))
+	--checkbox-H-border-clr: rgb(var(--font-heading-clr))
+	--checkbox-H-shadow: 0 0 0 0.25em rgba(var(--font-base-clr), 0.15)
+	--checkbox-A-symbole: #fff
+	--checkbox-A-H-bg: rgb(var(--clr-accent-darker))
+
+	// Ripple ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	--ripple-color: rgb(var(--font-heading-clr))
+	--ripple-easing: var(--trans-easing)
+
+	// Icon ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	--icon-primary: rgb(var(--font-base-clr))
+	--icon-secondary: rgba(var(--font-base-clr), 0.1)
+	--icon-bg: rgb(var(--box-bg))
+	--icon-size: 1em
+	--icon-transition: var(--trans)
+
+@mixin darkTheme
+	--splitter-horiontal: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 28 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle fill='%23fff' cx='2' cy='2' r='2'/%3E%3Ccircle fill='%23fff' cx='14' cy='2' r='2'/%3E%3Ccircle fill='%23fff' cx='26' cy='2' r='2'/%3E%3C/svg%3E") 
+	--splitter-vertical: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 4 28' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle fill='%23fff' cx='2' cy='2' r='2'/%3E%3Ccircle fill='%23fff' cx='2' cy='14' r='2'/%3E%3Ccircle fill='%23fff' cx='2' cy='26' r='2'/%3E%3C/svg%3E")
+
+	// Backgrounds :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--page-bg: 0, 0, 0
+	--box-bg: 30, 34, 30
+	--overlay-bg: rgba(0,0,0, 0.5)
+
+	// Typography ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--font-heading-clr: 255, 255, 255
+	--font-base-clr: 180, 185, 180
+
+	// Border ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--separator-top: solid 1px #000
+	--separator-bot: solid 1px rgba(var(--font-base-clr), 0.05)
+
+	// Shadow ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--shadow-clr: #000
+	--shadow-darker-clr: #000
+	--shadow-dark-clr: #000
+
+	// Tooltips ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--tooltip-bg: #fff
+	--tooltip-font: #000
+
+	// Modal :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--modal-border: solid 1px #000
+
+	// Button ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--btn-bg: rgba(var(--font-base-clr), 0.1)
+	--btn-H-bg: rgba(var(--font-base-clr), 0.25)
+	--btn-A-bg: rgba(var(--font-base-clr), 0.25)
+
+	// Button Group ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--btn-grp-A: 0 0 4px 1px rgba(0,0,0, 0.75) inset
+
+	// Switch ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	--switch-bg: rgba(var(--font-base-clr), 0.15)
+	--switch-nop: #646464
+	--switch-H-outline: rgba(var(--font-base-clr), 0.15)
+	--switch-A-bg: rgba(var(--clr-accent), 0.25)
+	--switch-A-nop: rgb(var(--clr-accent))
+	--switch-A-H-outline: rgb(var(--clr-accent), 0.15)
+
+@media (prefers-color-scheme: dark)
+	:root
+		background-color: #000
+	:root:not([app-theme='light'])
+		color-scheme: dark
+		@include darkTheme
+
+:root[app-theme='dark']
+	color-scheme: dark
+	@include darkTheme
+
+@media (prefers-reduced-motion)
+	:root
+		--trans-dur: 0
+	*
+		transition: none !important
+
+@media (prefers-contrast: more)
+	:root
+		--shadow-contrast: 0 0 0 1px rgb(var(--font-base-clr))
+		--border-clr: rgba(var(--font-base-clr), 0.5)
+		// @media (prefers-color-scheme: dark)

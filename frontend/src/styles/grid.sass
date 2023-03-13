@@ -1,0 +1,70 @@
+.grid
+	display: grid
+	grid-template-columns: 100%
+
+	&.gap-05
+		gap: 0.5rem
+	&.gap-1
+		gap: 1rem
+	&.gap-15
+		gap: 1.5rem
+	&.gap-2
+		gap: 2rem
+
+	&-top
+		align-content: start
+		align-items: start
+	&-right
+		justify-content: end
+		justify-items: end
+	&-bottom
+		align-content: end
+		align-items: end
+	&-left
+		justify-content: start
+		justify-items: start
+	&-center
+		align-content: center
+		align-items: center
+		justify-content: center
+		justify-items: center
+	
+	&-content-top
+		align-content: start
+	&-content-right
+		justify-content: end
+	&-content-bottom
+		align-content: end
+	&-content-left
+		justify-content: start
+	&-content-center
+		align-content: center
+		justify-content: center
+
+	&-self
+		&-top
+			align-self: start
+		&-right
+			justify-self: right
+		&-center
+			justify-self: center
+			align-self: center
+		&-left
+			justify-self: left
+		&-bottom
+			align-self: end
+
+	&-center
+		justify-content: center
+		align-content: center
+		align-items: center
+	&-center-y
+		align-content: center
+		align-items: center
+	&-center-x
+		justify-content: center
+		justify-items: center
+
+@for $i from 2 through 12
+	.grid-#{$i}
+		grid-template-columns: repeat($i, minmax(0, 1fr))

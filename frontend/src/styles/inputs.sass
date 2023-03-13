@@ -1,0 +1,35 @@
+input.inpt, textarea.inpt
+	padding: 0.5em
+	line-height: 1
+	border-radius: var(--inpt-rounding)
+	background-color: rgba(var(--font-base-clr), 0.05)
+	border: solid 1px rgba(var(--font-base-clr), 0.25)
+	box-shadow: none
+	font: inherit
+	transition: var(--trans)
+	transition-property: border-color, background-color, box-shadow
+	will-change: border-color, background-color, box-shadow
+	&.has-error
+		background-color: rgba(var(--clr-red), 0.15)
+		border-color: rgb(var(--clr-red))
+	&:hover
+		background-color: rgba(var(--clr-accent), 0.1)
+		border-color: rgb(var(--clr-accent))
+		color: rgb(var(--font-heading-clr))
+	&:active, &:focus
+		background-color: transparent
+		box-shadow: 0 0 0 1px rgb(var(--page-bg)), 0 0 0 0.25em rgba(var(--clr-accent), 0.1)
+		border-color: rgb(var(--clr-accent))
+		color: rgb(var(--font-heading-clr))
+	&::placeholder
+		color: rgb(var(--font-base-clr), 0.5)
+
+textarea
+	line-height: var(--font-line-height)
+
+form .field
+	label
+		margin-bottom: 0.25em
+		font-size: 0.8em
+	&:not(:hover) label
+		color: var(--border-hard-clr)

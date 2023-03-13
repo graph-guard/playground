@@ -1,0 +1,18 @@
+{
+	"app_crit_error": {
+		"title": "Kritischer Fehler",
+		"msg": "Oje, irgendetwas ist total falsch gelaufen. Erlaubst Du uns diesen Fehler anonym an uns zu schicken, damit wir diesen Fehler ermitteln können? Es wäre auch sehr hilfreich, wenn Du beschreiben könntest was eben geschehen ist:",
+		"user_feedback": "Wie es passierte (optional)",
+		"just_restart": "Nur neustarten",
+		"send_report_and_restart": "Report anonym senden & neustarten",
+		"hard_reset_msg": "Solltest Du in diesem Fehler gefangen sein, so kannst du versuchen die App zurück zu setzen. Durch die Rücksetzung wirst du abgemeldet und alle lokalen Daten dieser App gelöscht!",
+		"hard_reset": "Zurücksetzen"
+	},
+
+	"page": {
+		"404": {
+			"title": "Seite nicht gefunden",
+			"cta": "Zurück auf die Startseite"
+		}
+	}
+}

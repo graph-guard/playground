@@ -1,0 +1,110 @@
+.flex
+	display: flex
+.inline-flex
+	display: inline-flex
+
+.flex, .inline-flex
+	flex-direction: row
+	flex-wrap: wrap
+
+	&.nowrap
+		flex-wrap: nowrap
+	&-col
+		flex-direction: column
+
+	&-start
+		justify-content: flex-end
+	&-end
+		justify-content: flex-end
+
+	&-left
+		justify-content: flex-start
+		justify-items: flex-start
+	&-right
+		justify-content: flex-end
+		justify-items: flex-end
+
+	&-top
+		align-content: flex-start
+		align-items: flex-start
+	&-bottom
+		align-content: flex-end
+		align-items: flex-end
+
+	&-center
+		justify-content: center
+		align-content: center
+		align-items: center
+	&-center-y
+		align-content: center
+		align-items: center
+	&-center-x
+		justify-content: center
+
+	&-align
+		&-base
+			justify-content: baseline
+			align-content: baseline
+			align-items: baseline
+		&-y-base
+			align-content: baseline
+			align-items: baseline
+		&-x-base
+			justify-content: baseline
+
+		&-start
+			justify-content: flex-start
+			align-content: flex-start
+			align-items: flex-start
+		&-y-start
+			align-content: flex-start
+			align-items: flex-start
+		&-x-start
+			justify-content: flex-start
+
+		&-end
+			justify-content: flex-end
+			align-content: flex-end
+			align-items: flex-end
+		&-y-end
+			align-content: flex-end
+			align-items: flex-end
+		&-y-end
+			justify-content: flex-end
+
+	&-self
+		&-top
+			margin-bottom: auto
+		&-right
+			margin-left: auto
+		&-center
+			margin: auto
+		&-left
+			margin-right: auto
+		&-bottom
+			margin-top: auto
+
+	&-full-size
+		flex: 1 1 100%
+	&-full-size-fixed
+		flex: 0 0 100%
+
+	&-base-size
+		flex: 0 0 auto
+		&-grow
+			flex: 1 0 auto
+		&-shrink
+			flex: 0 1 auto
+		&-var
+			flex: 1 1 auto
+
+	&.gap-025
+		gap: 0.25rem
+	&.gap-05
+		gap: 0.5rem
+	&.gap-1
+		gap: 1rem
+	&.gap-15
+		gap: 1.5rem
+	&.gap-2
+		gap: 2rem

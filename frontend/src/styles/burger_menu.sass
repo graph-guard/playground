@@ -1,0 +1,92 @@
+%BurgerMenu
+	--icon-thickness: 1.5px
+	--icon-size: 2.5rem
+	display: flex
+	position: relative
+	width: var(--icon-size)
+	height: var(--icon-size)
+	padding: 0 !important
+	contain: content
+	> .burger
+		position: relative
+		width: 1.5rem
+		height: var(--icon-thickness)
+		margin: auto
+		background-color: var(--icon-primary, rgb(var(--font-base-clr)))
+		border-radius: 0.5rem
+		transform: translate3d(0,0,0) scale(1)
+		transition: var(--trans)
+		transition-property: background-color, transform, width, height, transform-origin, opacity, top
+		will-change: background-color, transform, width, height, transform-origin, opacity, top
+		&:before, &:after
+			content: ''
+			display: block
+			height: var(--icon-thickness)
+			width: 1.5rem
+			background-color: var(--icon-primary, rgb(var(--font-base-clr)))
+			border-radius: 0.5rem
+			position: absolute
+			z-index: 1
+			transform: translate3d(0,0,0) scale(1)
+			transition: var(--trans)
+			transition-property: background-color, transform, width, height, transform-origin, opacity, top
+			will-change: background-color, transform, width, height, transform-origin, opacity, top
+		&:before
+			top: 0.5rem
+			width: 0.75rem
+		&:after
+			top: -0.5rem
+	&:hover, &:active, &:focus
+		> .burger:before
+			width: 1.5rem
+	&.active, &:hover, &:focus
+		--icon-primary: var(--icon-primary-active, rgb(var(--font-heading-clr)))
+	&:active
+		--icon-primary: var(--btn-A-font)
+	&.active
+		&:not(.steps) > .burger
+			&:before, &:after
+				top: 0 !important
+
+%BurgerMenu-to-Plus, %BurgerMenu-to-Close, %BurgerMenu-to-ArrowUp,
+%BurgerMenu-to-ArrowRight, %BurgerMenu-to-left-arrow
+	@extend %BurgerMenu
+
+%BurgerMenu-to-ArrowTop, %BurgerMenu-to-ArrowRight, %BurgerMenu-to-ArrowLeft
+	&.active
+		> .burger
+			&:before, &:after
+				width: 1.5rem
+			&:before
+				transform: rotate(35deg)
+				transform-origin: left top
+			&:after
+				transform: rotate(-35deg)
+				transform-origin: left bottom
+
+%BurgerMenu-to-ArrowUp.active
+	transform: rotate(90deg)
+
+%BurgerMenu-to-ArrowRight
+	&.active
+		> .burger
+			&:before
+				transform: translate3d(1rem, 0,0) rotate(-35deg)
+				transform-origin: right top
+			&:after
+				transform: translate3d(1rem, 0,0) rotate(35deg)
+				transform-origin: right bottom
+
+%BurgerMenu-to-Close, %BurgerMenu-to-Plus
+	&.active
+		> .burger
+			transform: rotate(45deg)
+			&:before
+				transform: rotate(90deg)
+				width: 1.5rem
+			&:after
+				transform: scale(0,1)
+				opacity: 0
+
+%BurgerMenu-to-Plus.active
+	transform: rotate(45deg)

@@ -1,0 +1,61 @@
+{
+	"app_crit_error": {
+		"title": "Critical error",
+		"msg": "Oh deer, something has gone totally wrong. Let us know about the error by creating an issue with the following details:",
+		"show_detailed_error": "Show detailed error message",
+		"recover": "Recover",
+		"reload_app": "App reload",
+		"hard_reset_msg": "In case you are trapped in this error you may try to hard reset. After this reset all the local data will be erased!",
+		"hard_reset": "Hard reset"
+	},
+
+
+	"user_agent": {
+		"os": {
+			"windows": "Windows",
+			"windows_10": "Windows 10",
+			"windows_8_1": "Windows 8.1",
+			"windows_8": "Windows 8",
+			"windows_7": "Windows 7",
+			"windows_vista": "Windows Vista",
+			"windows_server_2003": "Windows Server 2003",
+			"windows_xp": "Windows XP",
+			"windows_2000": "Windows 2000",
+			"windows_me": "Windows ME",
+			"windows_98": "Windows 98",
+			"windows_95": "Windows 95",
+			"windows_nt_4_0": "Windows NT 4.0",
+			"windows_ce": "Windows CE",
+			"windows_3_11": "Windows 3.11",
+			"android": "Android",
+			"open_bsd": "Open BSD",
+			"sun_os": "Sun OS",
+			"chrome_os": "Chrome OS",
+			"linux": "Linux",
+			"ios": "iOS",
+			"mac_os_x": "Mac OS X",
+			"mac_os": "Mac OS",
+			"qnx": "QNX",
+			"unix": "Unix",
+			"be_os": "BeOS",
+			"os_2": "OS/2",
+			"search_bot": "Search Bot"
+		},
+		"browser": {
+			"opera": "Opera",
+			"ms_edge_legacy": "Microsoft Edge Legacy",
+			"ms_edge": "Microsoft Edge",
+			"ms_ie": "Microsoft Internet Explorer",
+			"google_chrome": "Google Chrome",
+			"apple_safari": "Apple Safari",
+			"mozilla_firefox": "Mozilla Firefox"
+		}
+	},
+
+	"page": {
+		"404": {
+			"title": "Page not found",
+			"cta": "Back on the start page"
+		}
+	}
+}

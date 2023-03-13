@@ -1,0 +1,245 @@
+a, button, input[type='submit'], label[for]
+	cursor: pointer
+	font: inherit
+
+a.btn, button.btn, input[type='submit'].btn
+	display: inline-flex
+	flex-flow: row wrap
+	padding: var(--btn-pdng)
+	line-height: 1
+	align-content: center
+	align-items: center
+	gap: var(--btn-child-gap)
+	border: var(--btn-border) var(--btn-border-clr)
+	border-radius: var(--btn-rounding)
+	background-color: var(--btn-bg)
+	color: var(--btn-font)
+	font-weight: var(--btn-font-weight)
+	box-shadow: var(--btn-shadow)
+	text-decoration: none
+	transition: var(--trans)
+	transition-property: box-shadow, background-color, color, border-color
+	.icon
+		--icon-primary: var(--btn-icon-primary)
+		--icon-secondary: var(--btn-icon-secondary)
+	&[disabled]
+		pointer-events: none
+		opacity: 0.5
+	&:hover, &:focus
+		background-color: var(--btn-H-bg)
+		border-color: var(--btn-H-border-clr)
+		color: var(--btn-H-font)
+		box-shadow: var(--btn-H-shadow)
+		.icon
+			--icon-primary: var(--btn-H-icon-primary)
+			--icon-secondary: var(--btn-H-icon-secondary)
+	&:active:hover
+		background-color: var(--btn-A-bg)
+		border-color: var(--btn-A-border-clr)
+		color: var(--btn-A-font)
+		box-shadow: var(--btn-A-shadow)
+		.icon
+			--icon-primary: var(--btn-A-icon-primary)
+			--icon-secondary: var(--btn-A-icon-secondary)
+	&.primary
+		--btn-bg: rgba(var(--font-base-clr), 0.15)
+		--btn-font: rgb(var(--font-heading-clr))
+		--btn-shadow: none
+		--btn-border-clr: rgb(var(--font-base-clr))
+		// hover
+		--btn-H-bg: rgb(var(--font-base-clr))
+		--btn-H-font: rgb(var(--page-bg))
+		--btn-H-shadow: none
+		--btn-H-border-clr: rgb(var(--font-heading-clr))
+		// active
+		--btn-A-bg: rgb(var(--font-heading-clr))
+		--btn-A-font: rgb(var(--page-bg))
+		--btn-A-shadow: none
+		--btn-A-border-clr: rgb(var(--page-bg))
+	&.accent
+		--ripple-color: rgb(var(--clr-accent))
+		--btn-bg: rgba(var(--clr-accent), 0.1)
+		--btn-font: rgb(var(--clr-accent-darker))
+		--btn-icon-primary: rgb(var(--clr-accent-darker))
+		--btn-icon-secondary: rgba(var(--clr-accent), 0.1)
+		// hover
+		--btn-H-bg: rgba(var(--clr-accent), 0.25)
+		--btn-H-font: rgb(var(--clr-accent-darker))
+		--btn-H-icon-primary: var(--btn-icon-primary)
+		--btn-H-icon-secondary: var(--btn-icon-secondary)
+		// active
+		--btn-A-bg: rgba(var(--clr-accent), 0.25)
+		--btn-A-font: rgb(var(--clr-accent-darker))
+		--btn-A-icon-primary: var(--btn-icon-primary)
+		--btn-A-icon-secondary: var(--btn-icon-secondary)
+		@media (prefers-color-scheme: dark)
+			--btn-font: rgb(var(--clr-accent-brighter))
+			--btn-icon-primary: var(--btn-font)
+			--btn-H-font: var(--btn-font)
+			--btn-H-icon-primary: var(--btn-font)
+			--btn-A-font: var(--btn-font)
+			--btn-A-icon-primary: var(--btn-font)
+	&.red
+		--ripple-color: rgb(var(--clr-red))
+		--btn-bg: rgba(var(--clr-red), 0.1)
+		--btn-font: rgb(var(--clr-red-darker))
+		--btn-icon-primary: var(--btn-font)
+		--btn-icon-secondary: rgba(var(--clr-red), 0.1)
+		// hover
+		--btn-H-bg: rgba(var(--clr-red), 0.25)
+		--btn-H-font: var(--btn-font)
+		--btn-H-icon-primary: var(--btn-icon-primary)
+		--btn-H-icon-secondary: var(--btn-icon-secondary)
+		// active
+		--btn-A-bg: rgba(var(--clr-red), 0.25)
+		--btn-A-font: var(--btn-font)
+		--btn-A-icon-primary: var(--btn-icon-primary)
+		--btn-A-icon-secondary: var(--btn-icon-secondary)
+		@media (prefers-color-scheme: dark)
+			--btn-bg: rgba(var(--clr-red), 0.2)
+			--btn-font: rgb(var(--clr-red))
+			--btn-H-bg: rgba(var(--clr-red), 0.35)
+	&.yellow
+		--ripple-color: rgb(var(--clr-yellow-darker))
+		--btn-bg: rgba(var(--clr-yellow-darker-rgb), 0.1)
+		--btn-font: rgb(var(--clr-yellow-darker))
+		--btn-icon-primary: rgb(var(--clr-yellow-darker))
+		--btn-icon-secondary: rgba(var(--clr-yellow), 0.1)
+		// hover
+		--btn-H-bg: rgba(var(--clr-yellow-darker-rgb), 0.25)
+		--btn-H-font: rgb(var(--clr-yellow-darker))
+		--btn-H-icon-primary: var(--btn-icon-primary)
+		--btn-H-icon-secondary: var(--btn-icon-secondary)
+		// active
+		--btn-A-bg: rgba(var(--clr-yellow-darker-rgb), 0.25)
+		--btn-A-font: rgb(var(--clr-yellow-darker))
+		--btn-A-icon-primary: var(--btn-icon-primary)
+		--btn-A-icon-secondary: var(--btn-icon-secondary)
+	&.green
+		--ripple-color: rgb(var(--clr-green))
+		--btn-bg: rgba(var(--clr-green), 0.1)
+		--btn-font: rgb(var(--clr-green-darker))
+		--btn-icon-primary: rgb(var(--clr-green-darker))
+		--btn-icon-secondary: rgba(var(--clr-green), 0.1)
+		// hover
+		--btn-H-bg: rgba(var(--clr-green), 0.25)
+		--btn-H-font: rgb(var(--clr-green-darker))
+		--btn-H-icon-primary: var(--btn-icon-primary)
+		--btn-H-icon-secondary: var(--btn-icon-secondary)
+		// active
+		--btn-A-bg: rgba(var(--clr-green), 0.25)
+		--btn-A-font: rgb(var(--clr-green-darker))
+		--btn-A-icon-primary: var(--btn-icon-primary)
+		--btn-A-icon-secondary: var(--btn-icon-secondary)
+	&.blue
+		--ripple-color: rgb(var(--clr-blue))
+		--btn-bg: rgba(var(--clr-blue), 0.1)
+		--btn-font: rgb(var(--clr-blue-darker))
+		--btn-icon-primary: rgb(var(--clr-blue-darker))
+		--btn-icon-secondary: rgba(var(--clr-blue), 0.1)
+		// hover
+		--btn-H-bg: rgba(var(--clr-blue), 0.25)
+		--btn-H-font: rgb(var(--clr-blue-darker))
+		--btn-H-icon-primary: var(--btn-icon-primary)
+		--btn-H-icon-secondary: var(--btn-icon-secondary)
+		// active
+		--btn-A-bg: rgba(var(--clr-blue), 0.25)
+		--btn-A-font: rgb(var(--clr-blue-darker))
+		--btn-A-icon-primary: var(--btn-icon-primary)
+		--btn-A-icon-secondary: var(--btn-icon-secondary)
+	&.orange
+		--ripple-color: rgb(var(--clr-orange))
+		--btn-bg: rgba(var(--clr-orange), 0.1)
+		--btn-font: rgb(var(--clr-orange-darker))
+		--btn-icon-primary: rgb(var(--clr-orange-darker))
+		--btn-icon-secondary: rgba(var(--clr-accent), 0.1)
+		// hover
+		--btn-H-bg: rgba(var(--clr-orange), 0.25)
+		--btn-H-font: rgb(var(--clr-orange-darker))
+		--btn-H-icon-primary: var(--btn-icon-primary)
+		--btn-H-icon-secondary: var(--btn-icon-secondary)
+		// active
+		--btn-A-bg: rgba(var(--clr-orange), 0.25)
+		--btn-A-font: rgb(var(--clr-orange-darker))
+		--btn-A-icon-primary: var(--btn-icon-primary)
+		--btn-A-icon-secondary: var(--btn-icon-secondary)
+
+.btn-group
+	position: relative
+	display: flex
+	flex-flow: row wrap
+	border-radius: var(--btn-grp-rounding)
+	border: var(--btn-grp-border) var(--btn-grp-border-clr)
+	background-color: var(--btn-grp-bg)
+	&[disabled='true']
+		pointer-events: none
+		opacity: 0.5
+	> button, > a
+		position: relative
+		display: flex
+		flex-flow: row wrap
+		align-content: center
+		align-items: center
+		line-height: 1
+		font-weight: var(--btn-font-weight)
+		padding: var(--btn-grp-pdng)
+		gap: var(--btn-grp-child-gap)
+		color: var(--btn-grp-font)
+		text-decoration: none
+		transition: var(--trans)
+		transition-property: box-shadow, background-color, color
+		&:first-child
+			border-top-left-radius: var(--btn-rounding)
+			border-bottom-left-radius: var(--btn-rounding)
+		&:last-child
+			border-top-right-radius: var(--btn-rounding)
+			border-bottom-right-radius: var(--btn-rounding)
+		&:not(:first-child)
+			margin-left: 1px
+			&:before
+				content: ''
+				position: absolute
+				left: -1px
+				display: inline-block
+				height: 60%
+				border-left: var(--btn-grp-divider)
+		&[disabled]
+			pointer-events: none
+			opacity: 0.5
+		.icon
+			--icon-primary: var(--btn-grp-icon-primary)
+			--icon-secondary: var(--btn-grp-icon-secondary)
+		&:hover, &:focus
+			z-index: 99
+			background-color: var(--btn-grp-H-bg)
+			color: var(--btn-grp-H-font)
+			box-shadow: var(--btn-grp-H-shadow)
+			.icon
+				--icon-primary: var(--btn-grp-H-icon-primary)
+				--icon-secondary: var(--btn-grp-H-icon-secondary)
+		&.active
+			--ripple-color: var(--btn-grp-A-font)
+			background-color: var(--btn-grp-A-bg)
+			color: var(--btn-grp-A-font)
+			box-shadow: var(--btn-grp-A-shadow)
+			.icon
+				--icon-primary: var(--btn-grp-A-icon-primary)
+				--icon-secondary: var(--btn-grp-A-icon-secondary)
+			&:focus
+				background-color: var(--btn-grp-A-F-bg)
+				box-shadow: var(--btn-grp-A-F-shadow)
+
+a.btn-link, button.btn-link, input[type='submit'].btn-link
+	display: flex
+	flex-flow: row wrap
+	align-content: center
+	align-items: center
+	cursor: pointer
+	color: rgb(var(--clr-accent))
+	text-decoration: none
+	&.secondary:not(:hover)
+		color: rgb(var(--font-base-clr))
+	&:hover, &:active, &:focus
+		text-decoration: underline
+		&.secondary
+			color: rgb(var(--font-heading-clr))

@@ -1,0 +1,75 @@
+@font-face
+	font-family: 'Inter'
+	font-style: normal
+	font-weight: 300 800
+	font-stretch: 100%
+	font-display: swap
+	src: url(../assets/fonts/inter.ttf) format('ttf')
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD
+
+@font-face
+	font-family: 'Fira Code'
+	font-style: normal
+	font-weight: 300 800
+	font-stretch: 100%
+	font-display: swap
+	src: url(../assets/fonts/fira_code.woff2) format('woff2'), url(../assets/fonts/fira_code.woff) format('woff')
+
+:root
+	font-size: var(--font-base-size)
+	font-family: var(--font-base-stack)
+	font-style: var(--font-base-style)
+	font-weight: var(--font-base-weight)
+	color: rgb(var(--font-base-clr))
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6
+	font-family: var(--font-heading-stack)
+	font-style: var(--font-heading-style)
+	font-weight: var(--font-heading-weight)
+	line-height: var(--font-heading-line-height)
+	color: rgb(var(--font-heading-clr))
+
+input, button, textarea, span, a, p, small, q, b, i,
+label, dl, dt, dd, select, optgroup, pre, code
+	font-size: inherit
+
+h1, .h1
+	font-size: 2.25em
+h2, .h2
+	font-size: 1.85em
+h3, .h3
+	font-size: 1.65em
+h4, .h4
+	font-size: 1.5em 
+h5, .h5
+	font-size: 1.25em
+h6, .h6
+	font-size: 1.15em
+
+p, textarea, .paragraph
+	line-height: var(--font-line-height)
+
+h1, h2, h3, h4, h5, h6, p, span, a
+	&.display-1
+		font-size: 6em
+	&.display-2
+		font-size: 5em
+	&.display-3
+		font-size: 4em
+	&.display-3
+		font-size: 3em
+	&.subtitle-1
+		font-size: 1.25em
+	&.subtitle-2
+		font-size: 1.15em
+	&.subtitle-3
+		font-size: 1em
+	&.subtitle-4
+		font-size: 0.9em
+	&.subtitle-5, &.subtitle-6
+		font-size: 0.75em
+
+code
+	font-family: var(--font-code-stack)
+pre
+	font-family: inherit

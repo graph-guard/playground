@@ -1,0 +1,18 @@
+{
+	"name": "GG Proxy Playground",
+	"short_name": "GGPPG",
+	"discription": "GraphGuard Proxy Playground",
+	"categories": ["productivity", "utilities"],
+	"icons": [
+		{"sizes": "16x16",   "src": "app-icon/ico-16.png",   "type": "image/png"},
+		{"sizes": "32x32",   "src": "app-icon/ico-32.png",   "type": "image/png"},
+		{"sizes": "64x64",   "src": "app-icon/ico-64.png",   "type": "image/png"},
+		{"sizes": "96x96",   "src": "app-icon/ico-96.png",   "type": "image/png"},
+		{"sizes": "128x128", "src": "app-icon/ico-128.png", "type": "image/png"},
+		{"sizes": "196x196", "src": "app-icon/ico-196.png", "type": "image/png"}
+	],
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#000000",
+	"theme_color": "#009966"
+}
