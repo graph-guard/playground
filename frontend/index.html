@@ -40,19 +40,16 @@
 	<link rel='manifest' href='manifest.json'/>
 	<script src='/src/assets/wasm_exec.js'></script>
 	<script>
-		window.engine = {}
+		const wasmFile = fetch('engine.wasm')
 		const go = new Go()
-		async function runEngine() {
-			const wasm = await WebAssembly.instantiateStreaming(fetch('engine.wasm'), go.importObject)
-			try {
-				await go.run(wasm.instance)
-				console.log('engine exited')
-			} catch (err) {
-				console.log('UPS: ', err)
-			}
+		window.engine = {
+			__run: async function runEngine() {
+				WebAssembly.instantiateStreaming(wasmFile, go.importObject).then((wasm)=> {
+					go.run(wasm.instance).catch((err)=> {throw err})
+				})
+			},
 		}
-		window.engine.RUN = runEngine
-		window.engine.RUN()
+		window.engine.__init = new Promise((r)=> {window.engine.__inited = r})
 	</script>
 </head>
 <body>

@@ -26,7 +26,7 @@ export let selectedEntry: number;
 		<button
 		on:click={()=> dispatch('click', idx)}
 		use:rippleEffect
-		class='entry flex'
+		class='entry flex nowrap'
 		class:active={idx === selectedEntry}>
 			<slot entry={entry} idx={idx}/>
 		</button>

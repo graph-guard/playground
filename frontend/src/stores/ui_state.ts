@@ -1,7 +1,7 @@
 import type {Readable, Unsubscriber, Updater} from 'svelte/store'
 import {writable, get as get$} from 'svelte/store'
 import {$ as workspace} from './playground'
-import {initStore} from './stores_init'
+import {storeIsInited} from './stores_init'
 
 export enum PlaygroundTab {
 	SchemaAndTemplates = 'SchemaAndTemplates',
@@ -107,7 +107,7 @@ class UIState implements Readable<t_$> {
 				return $
 			})
 		})
-		initStore('uiState')
+		storeIsInited('uiState')
 	}
 
 	public destroy() {

@@ -1,7 +1,7 @@
 import type {Readable} from 'svelte/store'
 import {derived} from 'svelte/store'
 import {init, register, locale, isLoading} from 'svelte-i18n'
-import {initStore} from './stores_init'
+import {storeIsInited} from './stores_init'
 
 /**
  * To add a new language you must add the corresponding enum in "Language",
@@ -51,7 +51,7 @@ class Store_i18n implements Readable<string> {
 			locale.set(locStore)
 		}
 		isLoading.subscribe(($)=> {
-			if ($) {initStore('i18n')}
+			if ($) {storeIsInited('i18n')}
 		})
 	}
 

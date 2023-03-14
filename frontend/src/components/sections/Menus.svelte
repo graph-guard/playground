@@ -2,15 +2,12 @@
 /**
  * How to add/remove a menu
  * 1. Import component & props interface
- * 2. Implement i_MenuProps (if no props, set to null)
+ * 2. Implement i_MenuProps (if no props, set to void)
  * 3. Implement menuComponent
 */
 
-import Menu_List from '../menus/List.svelte'
-import type {Props as MenuProps_List} from '../menus/List.svelte'
-
-import Menu_Selection from '../menus/Selection.svelte'
-import type {Props as MenuProps_Selection} from '../menus/Selection.svelte'
+import Menu_List, {type Props as MenuProps_List} from '../menus/List.svelte'
+import Menu_Selection, {type Props as MenuProps_Selection} from '../menus/Selection.svelte'
 
 export interface i_MenuProps {
 	list: MenuProps_List

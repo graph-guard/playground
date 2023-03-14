@@ -1,13 +1,13 @@
-type storesToInit = 'i18n'|'engine'|'uiState'
+type storesToInit = 'i18n'|'engine'|'uiState'|'playground'
 
 let _resolve: Function;
 const _initedStores: storesToInit[] = []
 export const storesInit = new Promise<void>((res)=> {_resolve = res})
 export const mustBeInited: readonly storesToInit[] = [
-	'i18n', 'engine', 'uiState',
+	'i18n', 'playground', 'uiState', 'engine',
 ]
 
-export function initStore(name: storesToInit) {
+export function storeIsInited(name: storesToInit) {
 	if (_initedStores.indexOf(name) !== -1) {
 		throw new Error(`store "${name}" has been already initialized`)
 	}

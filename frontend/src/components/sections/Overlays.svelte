@@ -2,21 +2,14 @@
 /**
  * How to add/remove an overlay
  * 1. Import component & props interface
- * 2. Implement i_OverlayProps (if no props, set to null)
+ * 2. Implement i_OverlayProps (if no props, set to void)
  * 3. Implement overlayComponent
  */
 
-import Overlay_LoaderFail from '../overlays/ModalLoaderFail.svelte'
-import type {Props as OverlayProps_LoaderFail} from '../overlays/ModalLoaderFail.svelte'
-
-import Overlay_Dialog from '../overlays/ModalDialog.svelte'
-import type {Props as OverlayProps_Dialog} from '../overlays/ModalDialog.svelte'
-
+import Overlay_LoaderFail, {type Props as OverlayProps_LoaderFail} from '../overlays/ModalLoaderFail.svelte'
+import Overlay_Dialog, {type Props as OverlayProps_Dialog} from '../overlays/ModalDialog.svelte'
 import Overlay_About from '../overlays/ModalAboutGraphGuard.svelte'
-
-import Overlay_CritErr from '../overlays/ModalCritErr.svelte'
-import type {Props as OverlayProps_CritErr} from '../overlays/ModalCritErr.svelte'
-
+import Overlay_CritErr, {type Props as OverlayProps_CritErr} from '../overlays/ModalCritErr.svelte'
 import Overlay_WorkspacesSidebar from '../overlays/DrawerWorkspacesSidebar.svelte'
 
 export interface i_OverlayProps {

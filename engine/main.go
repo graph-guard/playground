@@ -52,6 +52,7 @@ func Init(this js.Value, args []js.Value) (errors any) {
 		}
 	}
 
+	templateErrors := make(map[string]any, 0)
 	for i, tm := range templates {
 		opr, _, errs := p.Parse([]byte(tm.Source))
 		if errs != nil {
@@ -61,10 +62,8 @@ func Init(this js.Value, args []js.Value) (errors any) {
 					"%d:%d: %s", e.Line, e.Column, e.Msg,
 				))
 			}
-			return map[string]any{
-				"code":   "TEMPLATE_ERR",
-				"errors": errors,
-			}
+			templateErrors[tm.ID] = errors
+			continue
 		}
 
 		t := &config.Template{
@@ -76,6 +75,12 @@ func Init(this js.Value, args []js.Value) (errors any) {
 		}
 		templateDefinitions[tm.ID] = t
 		templatesEnabled[i] = t
+	}
+	if len(templateErrors) > 0 {
+		return map[string]any{
+			"code":   "TEMPLATE_ERR",
+			"errors": templateErrors,
+		}
 	}
 
 	engine = playmon.New(&config.Service{
@@ -160,6 +165,8 @@ func main() {
 	api.Set("say", js.FuncOf(say))
 	api.Set("init", js.FuncOf(Init))
 	api.Set("matchAll", js.FuncOf(MatchAll))
+
+	api.Call("__inited", nil)
 
 	select {}
 }

@@ -45,7 +45,6 @@ function deleteWs(idx: number) {
 			type: 'red',
 			action(x) {
 				if (timeSortedWorkspaces[idx].id === wsID && timeSortedWorkspaces.length > 1) {
-					console.log('herer')
 					uiState.selectWorkspace(timeSortedWorkspaces[idx-1 < 0 ? idx+1 : idx-1].id)
 				}
 				workspace.deleteWorkspace(timeSortedWorkspaces[idx].id)

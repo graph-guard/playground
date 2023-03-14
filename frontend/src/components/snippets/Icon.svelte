@@ -18,10 +18,11 @@ import IconSheet from '../icons/Sheet.svelte'
 import IconTelegram from '../icons/Telegram.svelte'
 import IconTwitter from '../icons/Twitter.svelte'
 import IconGitHub from '../icons/GitHub.svelte'
+import IconCheck from '../icons/Check.svelte'
 
 export type IconName = (
 	'graphguard'|'loader'|'error-circle'|'crit-error'|'warn'|'plus'|'cross'|'trash'|'duplicate'|'export'|'import'|
-	'chevron'|'play'|'sheet'|'telegram'|'twitter'|'github'
+	'chevron'|'play'|'sheet'|'telegram'|'twitter'|'github'|'check'
 )
 
 const icons: {[name in IconName]: typeof SvelteComponentDev} = {
@@ -42,6 +43,7 @@ const icons: {[name in IconName]: typeof SvelteComponentDev} = {
 	'telegram': IconTelegram,
 	'twitter': IconTwitter,
 	'github': IconGitHub,
+	'check': IconCheck,
 }
 </script>
 

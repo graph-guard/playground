@@ -1,9 +1,8 @@
 import type {Readable, Updater} from 'svelte/store'
 import {writable, get as get$, derived} from 'svelte/store'
-import {initStore} from './stores_init'
+import {storeIsInited} from './stores_init'
 import {randID} from '../utils/misc'
 import debounce from 'lodash/debounce'
-import {e_ToastStyle, popToast} from '../components/sections/Toasts.svelte'
 
 const WS_VERSION = 0
 const TEMPLATE_VERSION = 0
@@ -21,9 +20,15 @@ export enum EngineAPI_InitErrorCode {
 	TEMPLATE_ERR = 'TEMPLATE_ERR',
 }
 
-type EngineAPI_InitError = {
-	code: EngineAPI_InitErrorCode
-	errors: Array<string>
+interface EngineAPI_InitErrorPayloadType {
+	[EngineAPI_InitErrorCode.INIT_GQT_PARSER]: Array<string>
+	[EngineAPI_InitErrorCode.SCHEMA_ERR]: Array<string>
+	[EngineAPI_InitErrorCode.TEMPLATE_ERR]: {[key: string]: Array<string>}
+}
+
+type EngineAPI_InitError<T extends EngineAPI_InitErrorCode> = {
+	code: T
+	errors: EngineAPI_InitErrorPayloadType[T]
 }
 
 type EngineAPI_MatchAllResult = {
@@ -32,8 +37,10 @@ type EngineAPI_MatchAllResult = {
 }
 
 interface EngineAPI {
-	RUN: ()=> void
-	init: (schemaSrc: string, templates: Array<EngineAPI_Template>)=> EngineAPI_InitError|null
+	__run: ()=> void
+	__inited: ()=> void // resolver of _init, which is called from Go
+	__init: Promise<void> // resolved by the engine in Go
+	init: <T extends EngineAPI_InitErrorCode>(schemaSrc: string, templates: Array<EngineAPI_Template>)=> EngineAPI_InitError<T>|null
 	matchAll: (query: string, operationName: string, variablesJSON: string)=> EngineAPI_MatchAllResult
 }
 
@@ -65,7 +72,6 @@ export type GG_Workspace = VersionedEntity & {
 	id: string
 	name: string
 	schema: string
-	schemaError: EngineAPI_InitError|null
 	creation: number
 	templates: Array<GG_Template>
 	queries: Array<GG_Query>
@@ -75,15 +81,25 @@ type t_$ = VersionedEntity & {
 	workspaces: {[id: string]: GG_Workspace}
 }
 
+type t_$errors = {[wsID: string]: {
+	gqt: null|Array<string>
+	schema: null|Array<string>
+	templates: {[tplID: string]: Array<string>}
+}}
+
 class Playground implements Readable<t_$> {
 	#locStrID = 'gg-proxy-playground__workspaces'
 
 	private _engine: EngineAPI
-	#store = writable<t_$>({
-		_version: STORE_VERSION,
-		workspaces: {}
-	})
+
+	#store = writable<t_$>({_version: STORE_VERSION, workspaces: {}})
+	#errors = writable<t_$errors>({})
+	#engineInited = writable(false)
+
 	public readonly subscribe = this.#store.subscribe
+	public errors = derived(this.#errors, ($)=> $)
+	public isEngineInited = derived(this.#engineInited, ($)=> $)
+
 	public $() {return get$(this)}
 
 	private _update(fn: Updater<t_$>) {
@@ -194,7 +210,9 @@ class Playground implements Readable<t_$> {
 			return $
 		})
 		this._engine = window['engine'] as EngineAPI
-		initStore('engine')
+		this._engine.__run()
+		storeIsInited('playground')
+		this._engine.__init.then(()=> storeIsInited('engine'))
 	}
 
 	public derivedTemplatesIDMapByWS =(wsID: string)=> (
@@ -258,7 +276,6 @@ class Playground implements Readable<t_$> {
 			id: randID(),
 			name: name ?? '',
 			schema: '',
-			schemaError: null,
 			creation: Date.now(),
 			templates: [this._newTemplateObj()],
 			queries: [this._newQueryObj()],
@@ -309,7 +326,7 @@ class Playground implements Readable<t_$> {
 			}
 			if (typeof schema === 'string') {
 				$.workspaces[wsID].schema = schema
-				this._debouncedEngineInit(wsID, $)
+				this._debouncedEngineInit(wsID)
 			}
 			return $
 		})
@@ -326,6 +343,7 @@ class Playground implements Readable<t_$> {
 			tplID = newTpl.id
 			return $
 		})
+		this.initEngine(wsID)
 		return tplID
 	}
 
@@ -345,6 +363,7 @@ class Playground implements Readable<t_$> {
 			}
 			return $
 		})
+		this.initEngine(wsID)
 		if (err !== null) {throw err}
 	}
 
@@ -365,6 +384,7 @@ class Playground implements Readable<t_$> {
 			})
 			return $
 		})
+		this.initEngine(wsID)
 		if (err !== null) {throw err}
 	}
 
@@ -486,59 +506,32 @@ class Playground implements Readable<t_$> {
 
 	/* :: ENGINE :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
 
-	private _debouncedEngineInit = debounce((wsID: string, store?: t_$)=> {
-		const $ = store ?? this.$()
-		const err = this._engineInit($.workspaces[wsID].schema, $.workspaces[wsID].templates)
-		if (err) {
-			let msg = 'Unexpected error'
-			if (err.code === 'INIT_GQT_PARSER') {
-				msg = 'Error in GQT parser'
-			}
-			if (err.code === 'SCHEMA_ERR') {
-				msg = 'Error in schema'
-			}
-			if (err.code === 'TEMPLATE_ERR') {
-				msg = 'Error in template'
-			}
-			popToast({msg, style: e_ToastStyle.Error})
-			this._update(($)=> {
-				$.workspaces[wsID].schemaError = err
-				return $
-			})
-		}
-	}, 300)
+	private _debouncedEngineInit = debounce((wsID: string)=> this.initEngine(wsID), 300)
 
-	public initEngine(wsID: string) {
-		const $ = this.$()
-		const err = this._engineInit($.workspaces[wsID].schema, $.workspaces[wsID].templates)
-		if (err !== null) {
-			let msg = 'Unexpected error'
-			if (err.code === 'INIT_GQT_PARSER') {
-				msg = 'GQT parser error'
-			}
-			if (err.code === 'SCHEMA_ERR') {
-				msg = 'Schema error'
-			}
-			if (err.code === 'TEMPLATE_ERR') {
-				msg = 'Template error'
-			}
-			popToast({msg, style: e_ToastStyle.Error})
-			this._update(($)=> {
-				$.workspaces[wsID].schemaError = err
-				console.log(err)
+	public initEngine(wsID: string): EngineAPI_InitError<any>|null {
+		const $ws = this.$()
+		this.#engineInited.set(false)
+		const err = this._engine.init<any>($ws.workspaces[wsID].schema, $ws.workspaces[wsID].templates)
+		this.#errors.update(($)=> {
+			if (err === null) {
+				delete $[wsID]
 				return $
-			})
-		} else {
-			console.log('here')
-			this._update(($)=> {
-				$.workspaces[wsID].schemaError = null
-				return $
-			})
-		}
-	}
-
-	private _engineInit(schema: string, templates: Array<EngineAPI_Template>): EngineAPI_InitError|null {
-		return this._engine.init(schema, templates)
+			}
+			switch (err.code) {
+			case EngineAPI_InitErrorCode.INIT_GQT_PARSER:
+				$[wsID] = {gqt: err.errors, schema: null, templates: {}}
+				break
+			case EngineAPI_InitErrorCode.SCHEMA_ERR:
+				$[wsID] = {schema: err.errors, gqt: null, templates: {}}
+				break
+			case EngineAPI_InitErrorCode.TEMPLATE_ERR:
+				$[wsID] = {templates: err.errors, schema: null, gqt: null}
+				break
+			}
+			return $
+		})
+		this.#engineInited.set(true)
+		return err
 	}
 
 	private _engineMatchAll(query: string, operationName: string, variablesJSON: string): EngineAPI_MatchAllResult {
@@ -556,8 +549,6 @@ class Playground implements Readable<t_$> {
 		if (queryIdx === -1) {
 			throw new Error(`query by id "${queryID}" not existing`)
 		}
-
-		this.initEngine(ws.schema)
 	
 		const result = this._engineMatchAll(
 			ws.queries[queryIdx].query,

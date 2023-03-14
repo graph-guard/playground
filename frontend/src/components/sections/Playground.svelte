@@ -7,8 +7,19 @@ import rippleEffect from '../../utils/ripple'
 import Icon from '../snippets/Icon.svelte'
 import {openOverlay} from './Overlays.svelte'
 import {onMount} from 'svelte'
+import type {Unsubscriber} from 'svelte/store'
+import EngineStatusIndicator from '../snippets/EngineStatusIndicator.svelte'
 
 $:WS = $workspace.workspaces[$uiState.selectedWorkspaceID]
+$:isEngineInited = workspace.isEngineInited
+$:errors = workspace.errors
+$:wsErrors = WS.id in $errors ? $errors[WS.id] : null
+$:errorsCount = (
+	wsErrors === null ? 0 : (
+		wsErrors.gqt !== null || wsErrors.schema !== null ?
+			1 : Object.keys(wsErrors.templates).length
+	)
+)
 
 const tabMeta = {
 	[PlaygroundTab.SchemaAndTemplates]: {
@@ -24,15 +35,24 @@ const tabMeta = {
 let tabSlider = {width: 0, offset: 0}
 const tabEls: {[tabKey: string]: HTMLElement} = {}
 
-let unsubUIState: ()=> void;
+let unsubUIState: Unsubscriber;
 
 if (!$uiState.selectedWorkspaceID || !($uiState.selectedWorkspaceID in $workspace.workspaces)) {
 	uiState.selectWorkspace(Object.keys($workspace.workspaces)[0])
 }
 
-function exportWs() {}
+function exportWs() {
+	if (!$isEngineInited) {return}
+}
 
-function importWs() {}
+function importWs() {
+	if (!$isEngineInited) {return}
+}
+
+function openWorkspacesSidebar() {
+	if (!$isEngineInited) {return}
+	openOverlay({name: 'workspaces'})
+}
 
 onMount(()=> {
 	unsubUIState = uiState.subscribe(({selectedTab})=> {
@@ -51,16 +71,24 @@ onMount(()=> {
 	<header class='grid'>
 		<div class='left-part flex'>
 			<div class='tabs flex'>
-				{#each Object.values(PlaygroundTab) as tab}
-					<button
-					bind:this={tabEls[tab]}
-					on:click={()=> uiState.setTab(tab)}
-					use:rippleEffect
-					class:active={tab === $uiState.selectedTab}
-					class='btn flex flex-center'>
-						{tabMeta[tab].title}
-					</button>
-				{/each}
+				<button
+				bind:this={tabEls[PlaygroundTab.SchemaAndTemplates]}
+				on:click={()=> uiState.setTab(PlaygroundTab.SchemaAndTemplates)}
+				use:rippleEffect
+				class:active={PlaygroundTab.SchemaAndTemplates === $uiState.selectedTab}
+				class='btn flex flex-center'>
+					<EngineStatusIndicator loading={!$isEngineInited} errorsCount={errorsCount}/>
+					<span>{tabMeta[PlaygroundTab.SchemaAndTemplates].title}</span>
+				</button>
+
+				<button
+				bind:this={tabEls[PlaygroundTab.Queries]}
+				on:click={()=> uiState.setTab(PlaygroundTab.Queries)}
+				use:rippleEffect
+				class:active={PlaygroundTab.Queries === $uiState.selectedTab}
+				class='btn flex flex-center'>
+					{tabMeta[PlaygroundTab.Queries].title}
+				</button>
 				<div class='current-tab-slider' style:width='{tabSlider.width}px' style:left='{tabSlider.offset}px'/>
 			</div>
 		</div>
@@ -73,17 +101,17 @@ onMount(()=> {
 
 		<div class='right-part flex'>
 			<div class='actions flex-self-right flex gap-05'>
-				<button on:click={importWs} use:rippleEffect class='import btn flex gap-05 flex-center-y'>
+				<button on:click={importWs} use:rippleEffect disabled={!$isEngineInited} class='import btn flex gap-05 flex-center-y'>
 					<Icon name='import'/>
 					<span>Import</span>
 				</button>
 
-				<button on:click={exportWs} use:rippleEffect class='export btn flex gap-05 flex-center-y'>
+				<button on:click={exportWs} use:rippleEffect disabled={!$isEngineInited} class='export btn flex gap-05 flex-center-y'>
 					<Icon name='export'/>
 					<span>Export</span>
 				</button>
 
-				<button on:click={()=> openOverlay({name: 'workspaces'})} use:rippleEffect class='workspace-selection btn flex nowrap'>
+				<button on:click={openWorkspacesSidebar} use:rippleEffect disabled={!$isEngineInited} class='workspace-selection btn flex nowrap'>
 					<span class='flex-base-size-var'>{WS.name || 'Workspace (untitled)'}</span>
 					<Icon name='chevron'/>
 				</button>
@@ -137,6 +165,7 @@ onMount(()=> {
 				transition-property: width, left
 				background-color: rgb(var(--clr-accent))
 			> button
+				--btn-child-gap: 0.5em
 				border-radius: 0.25rem 0.25rem 0 0
 				--btn-bg: transparent
 				&.active

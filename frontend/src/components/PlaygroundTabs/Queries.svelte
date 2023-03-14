@@ -14,6 +14,15 @@ $:WS = $workspace.workspaces[wsID]
 $:selQueryIdx = wsUIState.selectedQueryIndex
 $:selQuery = WS.queries[selQueryIdx]
 $:templatesIDMapByWS = workspace.derivedTemplatesIDMapByWS(wsID)
+$:isEngineInited = workspace.isEngineInited
+$:errors = workspace.errors
+$:wsErrors = wsID in $errors ? $errors[wsID] : null
+$:hasAnyErrors = (
+	wsErrors !== null && (
+		wsErrors.gqt !== null || wsErrors.schema !== null || Object.keys(wsErrors.templates).length > 0
+	)
+)
+$:queryExecutionNotAllowed = !$isEngineInited || hasAnyErrors
 
 function openDeleteConfirmDialog() {
 	let title = `Delete untitled query ${selQueryIdx+1}`
@@ -63,6 +72,7 @@ function duplicateQuery() {
 }
 
 function executeQuery() {
+	if (hasAnyErrors) {return}
 	workspace.executeQuery(wsID, selQuery.id)
 }
 
@@ -100,7 +110,8 @@ function openTplRef(tplID: string) {
 							<EntityEditor
 							name={selQuery.name}
 							nameInputLabel='Query {selQueryIdx+1} (untitled)'
-							onPlay={executeQuery}
+							onExecuteQuery={executeQuery}
+							disableQueryExecution={queryExecutionNotAllowed}
 							on:delete={openDeleteConfirmDialog}
 							on:duplicate={duplicateQuery}
 							on:nameChange={({detail})=> onNameInput(detail)}>
