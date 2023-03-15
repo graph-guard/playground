@@ -100,6 +100,10 @@ class Playground implements Readable<t_$> {
 	public errors = derived(this.#errors, ($)=> $)
 	public isEngineInited = derived(this.#engineInited, ($)=> $)
 
+	private _panicWhenEngineIsIniting() {
+		if (!get$(this.isEngineInited)) {throw new Error('cannot interrupt engine init process')}
+	}
+
 	public $() {return get$(this)}
 
 	private _update(fn: Updater<t_$>) {
@@ -234,14 +238,20 @@ class Playground implements Readable<t_$> {
 	}
 
 	public export(): void {
+		this._panicWhenEngineIsIniting()
+
 		// TODO
 	}
 
 	public import(): void {
+		this._panicWhenEngineIsIniting()
+
 		// TODO
 	}
 
 	public eraseAllData(): void {
+		this._panicWhenEngineIsIniting()
+
 		this._update(($)=> {
 			$.workspaces = {}
 			const ws = this._newWorkspaceObj('')
@@ -285,6 +295,8 @@ class Playground implements Readable<t_$> {
 	/* :: WORKSPACE ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
 
 	public newWorkspace(name: string): string {
+		this._panicWhenEngineIsIniting()
+
 		let wsID = ''
 		this._update(($)=> {
 			const newWs = this._newWorkspaceObj(name)
@@ -296,6 +308,8 @@ class Playground implements Readable<t_$> {
 	}
 
 	public deleteWorkspace(wsID: string): void {
+		this._panicWhenEngineIsIniting()
+
 		this._update(($)=> {
 			if (Object.keys($.workspaces).length < 2) {
 				$.workspaces[wsID].name = ''
@@ -314,6 +328,7 @@ class Playground implements Readable<t_$> {
 		wsID: string,
 		{name, schema}: {name?: string, schema?: string},
 	): void {
+
 		let err: Error|null = null
 		this._update(($)=> {
 			if (!(wsID in $.workspaces)) {
@@ -539,6 +554,8 @@ class Playground implements Readable<t_$> {
 	}
 
 	public executeQuery(wsID: string, queryID: string) {
+		this._panicWhenEngineIsIniting()
+
 		const $ = this.$()
 		if (!(wsID in $.workspaces)) {
 			throw new Error(`workspace by id "${wsID}" not existing`)
