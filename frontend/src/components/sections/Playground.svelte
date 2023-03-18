@@ -44,10 +44,12 @@ if (!$uiState.selectedWorkspaceID || !($uiState.selectedWorkspaceID in $workspac
 
 function exportWs() {
 	if (!$isEngineInited) {return}
+	openOverlay({name: 'export'})
 }
 
 function importWs() {
 	if (!$isEngineInited) {return}
+	openOverlay({name: 'import'})
 }
 
 function openWorkspacesSidebar() {

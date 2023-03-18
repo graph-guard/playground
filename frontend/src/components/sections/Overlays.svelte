@@ -10,14 +10,18 @@ import Overlay_LoaderFail, {type Props as OverlayProps_LoaderFail} from '../over
 import Overlay_Dialog, {type Props as OverlayProps_Dialog} from '../overlays/ModalDialog.svelte'
 import Overlay_About, {type Props as OverlayProps_about} from '../overlays/ModalAboutGraphGuard.svelte'
 import Overlay_CritErr, {type Props as OverlayProps_CritErr} from '../overlays/ModalCritErr.svelte'
-import Overlay_WorkspacesSidebar from '../overlays/DrawerWorkspacesSidebar.svelte'
+import Overlay_Export, {type Props as OverlayProps_Export} from '../overlays/ExportWorkspace.svelte'
+import Overlay_Import, {type Props as OverlayProps_Import} from '../overlays/ImportWorkspace.svelte'
+import Overlay_WorkspacesSidebar, {type Props as OverlayProps_WorkspacesSidebar} from '../overlays/DrawerWorkspacesSidebar.svelte'
 
 export interface i_OverlayProps {
 	loaderFail: OverlayProps_LoaderFail
 	dialog:     OverlayProps_Dialog
 	about:      OverlayProps_about
 	critErr:    OverlayProps_CritErr
-	workspaces: void
+	export:     OverlayProps_Export
+	import:     OverlayProps_Import
+	workspaces: OverlayProps_WorkspacesSidebar
 }
 
 const overlayComponent: {[name in keyof i_OverlayProps]: typeof SvelteComponent} = {
@@ -25,6 +29,8 @@ const overlayComponent: {[name in keyof i_OverlayProps]: typeof SvelteComponent}
 	dialog:     Overlay_Dialog,
 	about:      Overlay_About,
 	critErr:    Overlay_CritErr,
+	export:     Overlay_Export,
+	import:     Overlay_Import,
 	workspaces: Overlay_WorkspacesSidebar,
 }
 

@@ -4,11 +4,12 @@ import {storeIsInited} from './stores_init'
 import {randID} from '../utils/misc'
 import debounce from 'lodash/debounce'
 import newLocalStorageKey from './_local_storage_prefix'
+import {importWorkspaceVersion} from '../utils/workspace_import'
 
-const WS_VERSION = 0
-const TEMPLATE_VERSION = 0
-const QUERY_VERSION = 0
-const STORE_VERSION = 0
+export const WS_VERSION = 0
+export const TEMPLATE_VERSION = 0
+export const QUERY_VERSION = 0
+export const STORE_VERSION = 0
 
 // VersionedEntity such entities can be migrated if needed
 export type VersionedEntity = {_version: number}
@@ -77,6 +78,18 @@ export type GG_Workspace = VersionedEntity & {
 	templates: Array<GG_Template>
 	queries: Array<GG_Query>
 }
+
+export type GG_ImportQuery = Partial<VersionedEntity & {name: string, query: string, variables: string}>
+
+export type GG_ImportTemplate = Partial<VersionedEntity & {name: string, source: string}>
+
+export type GG_ImportWorkspace = Partial<VersionedEntity & {
+	name: string
+	schema: string
+	creation: number
+	templates: Array<GG_ImportQuery>
+	queries: Array<GG_ImportTemplate>
+}>
 
 type t_$ = VersionedEntity & {
 	workspaces: {[id: string]: GG_Workspace}
@@ -238,16 +251,46 @@ class Playground implements Readable<t_$> {
 		return $.workspaces[wsID].templates.filter(({id})=> tplIDs.includes(id))
 	}
 
-	public export(): void {
+	public export(wsID: string): GG_ImportWorkspace {
 		this._panicWhenEngineIsIniting()
 
-		// TODO
+		const $ = this.$()
+		return {
+			_version: $.workspaces[wsID]._version,
+			name: $.workspaces[wsID].name || undefined,
+			schema: $.workspaces[wsID].schema || undefined,
+			creation: $.workspaces[wsID].creation,
+			templates: (
+				$.workspaces[wsID].templates.length ? $.workspaces[wsID].templates.map(
+					({_version, name, source})=> ({
+						_version,
+						name: name || undefined,
+						source: source || undefined,
+					})
+				) : undefined
+			),
+			queries: (
+				$.workspaces[wsID].queries.length ? $.workspaces[wsID].queries.map(
+					({_version, name, query, variables})=> ({
+						_version,
+						name: name || undefined,
+						query: query || undefined,
+						variables: variables || undefined,
+					})
+				) : undefined
+			),
+		}
 	}
 
-	public import(): void {
+	public import(input: GG_ImportWorkspace): string {
 		this._panicWhenEngineIsIniting()
 
-		// TODO
+		const ws = importWorkspaceVersion(input)
+		this._update(($)=> {
+			$.workspaces[ws.id] = ws
+			return $
+		})
+		return ws.id
 	}
 
 	public eraseAllData(): void {

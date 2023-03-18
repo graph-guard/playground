@@ -128,6 +128,7 @@ class UIState implements Readable<t_$> {
 			}
 			return $
 		})
+		workspace.initEngine(wsID)
 	}
 
 	public setTab(tab: PlaygroundTab): void {

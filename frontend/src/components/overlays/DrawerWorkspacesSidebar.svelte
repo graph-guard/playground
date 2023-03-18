@@ -100,6 +100,10 @@ function onDelAllWs() {
 }
 </script>
 
+<script lang='ts' context='module'>
+export type Props = void;
+</script>
+
 
 
 <div id='WorkspacesSidebar' class='overlay-container'>
