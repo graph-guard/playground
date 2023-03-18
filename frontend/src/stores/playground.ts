@@ -3,6 +3,7 @@ import {writable, get as get$, derived} from 'svelte/store'
 import {storeIsInited} from './stores_init'
 import {randID} from '../utils/misc'
 import debounce from 'lodash/debounce'
+import newLocalStorageKey from './_local_storage_prefix'
 
 const WS_VERSION = 0
 const TEMPLATE_VERSION = 0
@@ -88,7 +89,7 @@ type t_$errors = {[wsID: string]: {
 }}
 
 class Playground implements Readable<t_$> {
-	#locStrID = 'gg-proxy-playground__workspaces'
+	#locStrID = newLocalStorageKey('workspaces')
 
 	private _engine: EngineAPI
 

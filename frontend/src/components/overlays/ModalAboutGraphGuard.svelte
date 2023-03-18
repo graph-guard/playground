@@ -1,7 +1,11 @@
 <div class='overlay-container'>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<div class='background' on:click={closeThis} transition:fade/>
-	<div bind:this={thisEl} tabindex='-1' class='dialog-modal modal default-style' transition:modalTransition>
+	<div class='background' on:click={closeThis} in:fade={transitionDuration} out:bgOutTransition/>
+	<div bind:this={thisEl}
+	tabindex='-1'
+	class='dialog-modal modal default-style'
+	in:modalTransition={transitionDuration}
+	out:modalOutTransition>
 		<button on:click={closeThis} use:rippleEffect class='close-modal btn'>
 			<Icon name='cross'/>
 		</button>
@@ -75,15 +79,53 @@
 
 
 
+
+<script lang='ts' context='module'>
+import newLocalStorageKey from '../../stores/_local_storage_prefix'
+export type Props = void | {
+	welcome: boolean;
+};
+export const welcomeModalLocStrKey = newLocalStorageKey('welcome')
+</script>
+
 <script lang='ts'>
 import {onMount} from 'svelte'
-import {fade, modalTransition} from '../../utils/transitions'
+import {customTransition, fade, modalTransition} from '../../utils/transitions'
 import {createEventDispatcher} from 'svelte'
 import rippleEffect from '../../utils/ripple'
+import {$ as uiState} from '../../stores/ui_state'
 import Icon from '../snippets/Icon.svelte'
+import {cubicOut, cubicInOut} from 'svelte/easing'
 const dispatch = createEventDispatcher<{close: void, mounted: HTMLElement}>()
 
 let thisEl: HTMLElement
+export let props: Props;
+
+let transitionDuration = props?.welcome ? {duration: 1e3} : undefined
+let bgOutTransition = props?.welcome ? welcomeBgOutTransition : fade
+let modalOutTransition = props?.welcome ? welcomeModalOutTransition : modalTransition
+
+function welcomeBgOutTransition(n, o?) {
+	return customTransition({duration: 1200, easing: cubicInOut, css: (t)=> `opacity: ${t}`})
+}
+
+function welcomeModalOutTransition(node: HTMLElement, o?) {
+	const x = node.offsetTop * 3
+	console.log(x)
+	const style = getComputedStyle(node)
+	return customTransition({
+		duration: 1200,
+		css: (t)=> {
+			const t2 = cubicInOut(t)
+			return (
+				`transform-origin: top;` +
+				`transform: scale(${t2}) translateY(-${x - x * cubicOut(t)}%);` +
+				`opacity: ${t2};` +
+				`border-radius: ${parseInt(style.borderRadius, 10) + (150 - 150 * t2)}px;`
+			)
+		},
+	})
+}
 
 onMount(()=> {
 	dispatch('mounted', thisEl)
@@ -91,6 +133,13 @@ onMount(()=> {
 
 function closeThis() {
 	dispatch('close')
+	if (props?.welcome) {uiState.playLogoAnim.set(true)}
+	if ('localStorage' in window) {
+		const lastTimeOpened = localStorage.getItem(welcomeModalLocStrKey)
+		if (!lastTimeOpened) {
+			localStorage.setItem(welcomeModalLocStrKey, Date.now().toString())
+		}
+	}
 }
 </script>
 

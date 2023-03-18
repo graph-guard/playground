@@ -2,6 +2,7 @@ import type {Readable} from 'svelte/store'
 import {derived} from 'svelte/store'
 import {init, register, locale, isLoading} from 'svelte-i18n'
 import {storeIsInited} from './stores_init'
+import newLocalStorageKey from './_local_storage_prefix'
 
 /**
  * To add a new language you must add the corresponding enum in "Language",
@@ -20,7 +21,7 @@ export const DefaultLanguage = Language.en
 
 class Store_i18n implements Readable<string> {
 	// LocalStorage ID
-	#locStrID = 'gg-proxy-playground__lang'
+	#locStrID = newLocalStorageKey('lang')
 
 	public readonly subscribe = derived(locale, ($)=> $ ?? '').subscribe
 

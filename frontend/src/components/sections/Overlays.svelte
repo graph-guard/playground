@@ -8,14 +8,14 @@
 
 import Overlay_LoaderFail, {type Props as OverlayProps_LoaderFail} from '../overlays/ModalLoaderFail.svelte'
 import Overlay_Dialog, {type Props as OverlayProps_Dialog} from '../overlays/ModalDialog.svelte'
-import Overlay_About from '../overlays/ModalAboutGraphGuard.svelte'
+import Overlay_About, {type Props as OverlayProps_about} from '../overlays/ModalAboutGraphGuard.svelte'
 import Overlay_CritErr, {type Props as OverlayProps_CritErr} from '../overlays/ModalCritErr.svelte'
 import Overlay_WorkspacesSidebar from '../overlays/DrawerWorkspacesSidebar.svelte'
 
 export interface i_OverlayProps {
 	loaderFail: OverlayProps_LoaderFail
 	dialog:     OverlayProps_Dialog
-	about:      void
+	about:      OverlayProps_about
 	critErr:    OverlayProps_CritErr
 	workspaces: void
 }

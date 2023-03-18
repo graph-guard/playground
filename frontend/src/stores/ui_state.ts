@@ -2,6 +2,7 @@ import type {Readable, Unsubscriber, Updater} from 'svelte/store'
 import {writable, get as get$} from 'svelte/store'
 import {$ as workspace} from './playground'
 import {storeIsInited} from './stores_init'
+import newLocalStorageKey from './_local_storage_prefix'
 
 export enum PlaygroundTab {
 	SchemaAndTemplates = 'SchemaAndTemplates',
@@ -21,7 +22,7 @@ type t_$ = {
 }
 
 class UIState implements Readable<t_$> {
-	#locStrID = 'gg-proxy-playground__ui-state'
+	#locStrID = newLocalStorageKey('ui-state')
 
 	#store = writable<t_$>({
 		version: 0,
@@ -31,6 +32,8 @@ class UIState implements Readable<t_$> {
 	})
 	public readonly subscribe = this.#store.subscribe
 	public $() {return get$(this)}
+
+	public playLogoAnim = writable(false)
 
 	private _update(fn: Updater<t_$>) {
 		this.#store.update(($)=> {

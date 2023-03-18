@@ -1,6 +1,7 @@
 <script lang='ts' context='module'>
 import {writable, get as get$} from 'svelte/store'
 import {randID} from './utils/misc'
+import newLocalStorageKey from './stores/_local_storage_prefix'
 
 // BEGIN configurable variables
 
@@ -15,7 +16,7 @@ export enum t_AppTheme {
 	System = 'sys', Light = 'light', Dark = 'dark',
 }
 
-const appThemeLocStoreID = 'gg-proxy-playground__theme'
+const appThemeLocStoreID = newLocalStorageKey('theme')
 
 let _appTheme = t_AppTheme.System
 if ('localStorage' in window) {
@@ -207,6 +208,9 @@ function _checkIsFocusAllowed(event: FocusEvent & {currentTarget: EventTarget & 
 
 
 <script lang='ts'>
+import {onMount} from 'svelte'
+import {welcomeModalLocStrKey} from './components/overlays/ModalAboutGraphGuard.svelte'
+
 import CritErrModal from './components/overlays/ModalCritErr.svelte'
 import Overlays, { openOverlay } from './components/sections/Overlays.svelte'
 import Toasts from './components/sections/Toasts.svelte'
@@ -223,6 +227,15 @@ import './stores/playground'
 
 let storesAreInited = false
 storesInit.then(()=> {storesAreInited = true})
+
+onMount(()=> {
+	if ('localStorage' in window) {
+		const lastTimeOpened = localStorage.getItem(welcomeModalLocStrKey)
+		if (!lastTimeOpened) {
+			setTimeout(()=> openOverlay({name: 'about', props: {welcome: true}}), 200)
+		}
+	}
+})
 </script>
 
 

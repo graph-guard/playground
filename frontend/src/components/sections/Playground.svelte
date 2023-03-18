@@ -20,6 +20,7 @@ $:errorsCount = (
 			1 : Object.keys(wsErrors.templates).length
 	)
 )
+$:playLogoAnim = uiState.playLogoAnim
 
 const tabMeta = {
 	[PlaygroundTab.SchemaAndTemplates]: {
@@ -94,7 +95,11 @@ onMount(()=> {
 		</div>
 
 		<div id='GraphGuardLogo' class='flex-base-size flex'>
-			<button on:click={()=> openOverlay({name: 'about'})} use:rippleEffect class='btn accent flex flex-center'>
+			<button on:click={()=> openOverlay({name: 'about'})}
+			use:rippleEffect
+			class='btn accent flex flex-center'
+			class:welcome-closed={$playLogoAnim}
+			on:transitionend={()=> playLogoAnim.set(false)}>
 				<img src='app-icon/ico.svg' alt='GraphGuard'/>
 			</button>
 		</div>
@@ -151,6 +156,37 @@ onMount(()=> {
 				height: 100%
 				width: 100%
 				--btn-bg: transparent
+				&.welcome-closed
+					position: relative
+					animation: 3.5s cubic-bezier(0.85, 0, 0.15, 1) welcomeClosedLogo both
+					animation-delay: 0.2s
+					overflow: hidden
+					@keyframes welcomeClosedLogo
+						0%
+							transform: scale(1)
+						27%
+							transform: scale(2)
+						35%
+							transform: scale(1)
+						100%
+							transform: scale(1)
+					&:before
+						position: absolute
+						content: ''
+						width: 200%
+						height: 200%
+						background: -webkit-linear-gradient(115deg, rgb(var(--clr-accent), 0) 20%, rgb(var(--clr-accent), 0.2) 50%, rgb(var(--clr-accent), 0) 80%)
+						background: -moz-linear-gradient(115deg, rgb(var(--clr-accent), 0) 20%, rgb(var(--clr-accent), 0.2) 50%, rgb(var(--clr-accent), 0) 80%)
+						background: linear-gradient(115deg, rgb(var(--clr-accent), 0) 20%, rgb(var(--clr-accent), 0.2) 50%, rgb(var(--clr-accent), 0) 80%)
+						animation: 3.5s var(--trans-easing) welcomeClosedLogoFlare both
+						animation-delay: 0.2s
+						@keyframes welcomeClosedLogoFlare
+							0%
+								transform: translateX(-100%)
+							35%
+								transform: translateX(-100%)
+							100%
+								transform: translateX(100%)
 			img
 				height: 100%
 				aspect-ratio: 1/1

@@ -2,21 +2,23 @@ import type {TransitionConfig} from 'svelte/transition'
 import {cubicInOut, cubicOut} from 'svelte/easing'
 import {appState} from '../App.svelte'
 
+type Easing = (t: number)=> number
+
 export function customTransition(config: TransitionConfig): TransitionConfig {
 	return appState.$().a11y.reducedMotion ? {duration: 0} : config
 }
 
-export function fade(n, opts?: {duration?: number}) {
+export function fade(n, opts?: {duration?: number, easing?: Easing}) {
 	return customTransition({
-		duration: opts?.duration || 250,
-		easing: cubicInOut,
+		duration: opts?.duration ?? 250,
+		easing: opts?.easing ?? cubicInOut,
 		css: (t)=> `opacity: ${t};`,
 	})
 }
 
-export function modalTransition(n, o?) {
+export function modalTransition(n, opts?: {duration: number}) {
 	return customTransition({
-		duration: 250,
+		duration: opts?.duration ?? 250,
 		easing: cubicInOut,
 		css: (t)=> (
 			`transform: translateY(${1-t}rem) scale(${0.9 + 0.1 * t});` +
