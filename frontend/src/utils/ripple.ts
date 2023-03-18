@@ -24,9 +24,6 @@ function rippleEffect(node: HTMLElement, o?): ActionReturn {
 	wrapper.style.width = '100%'
 	wrapper.style.height = '100%'
 	wrapper.style.pointerEvents = 'none'
-	wrapper.style.transform = (
-		`translate(-${compStyl.borderTopWidth}, -${compStyl.borderTopWidth})`
-	)
 	wrapper.style.borderTopLeftRadius = compStyl.borderTopLeftRadius
 	wrapper.style.borderTopRightRadius = compStyl.borderTopRightRadius
 	wrapper.style.borderBottomRightRadius = compStyl.borderBottomRightRadius
