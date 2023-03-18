@@ -80,10 +80,6 @@ const dispatch = createEventDispatcher<{close: void, mounted: HTMLElement}>()
 
 let thisEl: HTMLElement
 
-onMount(()=> {
-	dispatch('mounted', thisEl)
-})
-
 export let props: Props
 export let escapable: boolean|undefined
 
@@ -122,6 +118,8 @@ let primaryDisabled = false
 let secondaryDisabled = false
 
 onMount(()=> {
+	dispatch('mounted', thisEl)
+
 	let _primaryDelayInteractTO: number|null = null
 	if (props.primary?.delayedInteraction) {
 		primaryDisabled = true
