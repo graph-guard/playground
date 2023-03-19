@@ -8,16 +8,19 @@ import (
 	"github.com/graph-guard/ggproxy/pkg/config"
 	"github.com/graph-guard/ggproxy/pkg/engine/playmon"
 	"github.com/graph-guard/ggproxy/pkg/gqlparse"
+	"github.com/graph-guard/gqlscan"
 	"github.com/graph-guard/gqt/v4"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
 var engine *playmon.Engine
+var schema *ast.Schema
 
 type Template struct{ ID, Source string }
 
 func Init(this js.Value, args []js.Value) (errors any) {
+	schema, engine = nil, nil
 	defer handlePanic()
 
 	schemaSrc := args[0].String()
@@ -28,7 +31,6 @@ func Init(this js.Value, args []js.Value) (errors any) {
 		templates[i].Source = o.Get("source").String()
 	}
 
-	var schema *ast.Schema
 	var parserSrc []gqt.Source
 	if schemaSrc != "" {
 		var err error
@@ -112,6 +114,7 @@ func MatchAll(
 	query := args[0].String()
 	operationName := args[1].String()
 	variablesJSON := args[2].String()
+	fmt.Println(variablesJSON)
 
 	var oprName []byte
 	if operationName != "" {
@@ -153,13 +156,6 @@ func handlePanic() {
 	}
 }
 
-// TODO: remove say()
-func say(this js.Value, inputs []js.Value) any {
-	defer handlePanic()
-	panic("test")
-	return "Engine says: " + inputs[0].String()
-}
-
 func main() {
 	api := js.Global().Get("engine")
 	if api.IsUndefined() {
@@ -167,12 +163,52 @@ func main() {
 		js.Global().Set("engine", api)
 	}
 
-	// API endpoints should also be defined in the frontend in "src/stores/engine.ts" in the "EngineAPI" interface
-	api.Set("say", js.FuncOf(say))
+	// API endpoints must also be defined in the EngineAPI interface
+	// in src/stores/playground.ts
+	api.Set("parseOperation", js.FuncOf(ParseOperation))
 	api.Set("init", js.FuncOf(Init))
 	api.Set("matchAll", js.FuncOf(MatchAll))
 
 	api.Call("__inited", nil)
 
 	select {}
+}
+
+func ParseOperation(this js.Value, args []js.Value) (errors any) {
+	var (
+		operations []any
+		oprType    string
+		oprIndex   int
+	)
+	src := args[0].String()
+	if err := gqlscan.ScanAll([]byte(src), func(i *gqlscan.Iterator) {
+		switch i.Token() {
+		case gqlscan.TokenDefQry:
+			oprType, oprIndex = "Query", i.IndexHead()
+		case gqlscan.TokenDefMut:
+			oprType, oprIndex = "Mutation", i.IndexHead()
+		case gqlscan.TokenDefSub:
+			oprType, oprIndex = "Subscription", i.IndexHead()
+		case gqlscan.TokenOprName:
+			operations = append(operations, map[string]any{
+				"name":  string(i.Value()),
+				"type":  oprType,
+				"index": oprIndex,
+			})
+		}
+	}); err.IsErr() {
+		return map[string]any{
+			"code":   "PARSE_OPR",
+			"errors": err.Error(),
+		}
+	}
+	if schema != nil {
+		if _, err := gqlparser.LoadQuery(schema, src); err != nil {
+			return map[string]any{
+				"code":   "PARSE_OPR",
+				"errors": err.Error(),
+			}
+		}
+	}
+	return map[string]any{"operations": operations}
 }

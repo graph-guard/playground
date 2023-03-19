@@ -12,8 +12,6 @@ const dispatch = createEventDispatcher<{
 
 export let name: string;
 export let nameInputLabel: string;
-export let onExecuteQuery: undefined|(()=> void) = undefined
-export let disableQueryExecution = false
 </script>
 
 
@@ -35,11 +33,6 @@ export let disableQueryExecution = false
 		<button on:click={()=> dispatch('duplicate')} use:rippleEffect class='btn btn-icon'>
 			<Icon name='duplicate'/>
 		</button>
-		{#if onExecuteQuery}
-			<button on:click={onExecuteQuery} use:rippleEffect disabled={disableQueryExecution} class='btn btn-icon'>
-				<Icon name='play'/>
-			</button>
-		{/if}
 	</div>
 </header>
 

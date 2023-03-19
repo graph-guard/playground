@@ -4,6 +4,8 @@ import {$ as workspace} from './playground'
 import {storeIsInited} from './stores_init'
 import newLocalStorageKey from './_local_storage_prefix'
 
+const UI_STATE_VERSION = 0
+
 export enum PlaygroundTab {
 	SchemaAndTemplates = 'SchemaAndTemplates',
 	Queries = 'Queries',
@@ -12,10 +14,11 @@ export enum PlaygroundTab {
 type GG_WorkspaceUIState = {
 	selectedTemplateIndex: number
 	selectedQueryIndex: number
+	selectedQueryName: {[queryID: string]: string}
 }
 
 type t_$ = {
-	version: number // indicates the version of the store. different store can be migrated differently.
+	_version: number // indicates the version of the store. different store can be migrated differently.
 	selectedTab: PlaygroundTab
 	selectedWorkspaceID: string
 	workspaces: {[id: string]: GG_WorkspaceUIState}
@@ -25,7 +28,7 @@ class UIState implements Readable<t_$> {
 	#locStrID = newLocalStorageKey('ui-state')
 
 	#store = writable<t_$>({
-		version: 0,
+		_version: UI_STATE_VERSION,
 		selectedTab: PlaygroundTab.SchemaAndTemplates,
 		selectedWorkspaceID: '',
 		workspaces: {},
@@ -103,6 +106,7 @@ class UIState implements Readable<t_$> {
 					$.workspaces[$.selectedWorkspaceID] = {
 						selectedTemplateIndex: 0,
 						selectedQueryIndex: 0,
+						selectedQueryName: {},
 					}
 				}
 
@@ -124,6 +128,7 @@ class UIState implements Readable<t_$> {
 				$.workspaces[wsID] = {
 					selectedTemplateIndex: 0,
 					selectedQueryIndex: 0,
+					selectedQueryName: {},
 				}
 			}
 			return $
@@ -162,6 +167,17 @@ class UIState implements Readable<t_$> {
 			return $
 		})
 		if (err !== null) {throw err}
+	}
+
+	public selectQueryName(wsID: string, queryID: string, name: string|null) {
+		this._update(($)=> {
+			if (name === null) {
+				delete $.workspaces[wsID].selectedQueryName[queryID]
+			} else {
+				$.workspaces[wsID].selectedQueryName[queryID] = name
+			}
+			return $
+		})
 	}
 }
 

@@ -64,6 +64,7 @@ onMount(()=> {
 		tabSlider = tabSlider
 	})
 	workspace.initEngine(WS.id)
+	workspace.parseAllOperations(WS.id)
 	return ()=> {
 		unsubUIState()
 	}

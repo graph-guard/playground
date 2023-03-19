@@ -38,21 +38,31 @@ type EngineAPI_MatchAllResult = {
 	matched?: Array<string>
 }
 
+enum OperationType {
+	Query = 'Query',
+	Mutation = 'Mutation',
+	Subscription = 'Subscription',
+}
+
+type EngineAPI_Operation = {name: string, index: number, type: OperationType}
+
+type EngineAPI_ParsedOperation = {
+	operations?: Array<EngineAPI_Operation>
+	code?: 'PARSE_OPR'
+	errors?: string
+}
+
 interface EngineAPI {
 	__run: ()=> void
 	__inited: ()=> void // resolver of _init, which is called from Go
 	__init: Promise<void> // resolved by the engine in Go
 	init: <T extends EngineAPI_InitErrorCode>(schemaSrc: string, templates: Array<EngineAPI_Template>)=> EngineAPI_InitError<T>|null
 	matchAll: (query: string, operationName: string, variablesJSON: string)=> EngineAPI_MatchAllResult
-}
-
-export type GG_QueryResultTemplate = {
-	refID: string
-	name: string
+	parseOperation: (query: string)=> EngineAPI_ParsedOperation
 }
 
 export type GG_QueryResults = {
-	matched: Array<GG_QueryResultTemplate>
+	matched: Array<string>
 	error: string|null
 }
 
@@ -61,7 +71,6 @@ export type GG_Query = VersionedEntity & {
 	name: string
 	query: string
 	variables: string
-	results: GG_QueryResults|null
 }
 
 export type GG_Template = VersionedEntity & {
@@ -100,7 +109,12 @@ type t_$errors = {[wsID: string]: {
 	gqt: null|Array<string>
 	schema: null|Array<string>
 	templates: {[tplID: string]: Array<string>}
+	queries: {[queryID: string]: Array<string>}
 }}
+
+type t_$parsedOperations = {[wsID: string]: {[queryID: string]: Array<EngineAPI_Operation>}}
+
+type t_$queryResults = {[wsID: string]: {[queryID: string]: GG_QueryResults}}
 
 class Playground implements Readable<t_$> {
 	#locStrID = newLocalStorageKey('workspaces')
@@ -109,11 +123,15 @@ class Playground implements Readable<t_$> {
 
 	#store = writable<t_$>({_version: STORE_VERSION, workspaces: {}})
 	#errors = writable<t_$errors>({})
+	#queryResults = writable<t_$queryResults>({})
 	#engineInited = writable(false)
+	#parsedOperations = writable<t_$parsedOperations>({})
 
 	public readonly subscribe = this.#store.subscribe
 	public errors = derived(this.#errors, ($)=> $)
+	public results = derived(this.#queryResults, ($)=> $)
 	public isEngineInited = derived(this.#engineInited, ($)=> $)
+	public parsedOperations = derived(this.#parsedOperations, ($)=> $)
 
 	private _panicWhenEngineIsIniting() {
 		if (!get$(this.isEngineInited)) {throw new Error('cannot interrupt engine init process')}
@@ -344,7 +362,6 @@ class Playground implements Readable<t_$> {
 			name: name ?? '',
 			query: '',
 			variables: '',
-			results: null,
 		}
 	}
 
@@ -389,6 +406,18 @@ class Playground implements Readable<t_$> {
 			} else {
 				delete $.workspaces[wsID]
 			}
+			this.#errors.update(($)=> {
+				delete $[wsID]
+				return $
+			})
+			this.#queryResults.update(($)=> {
+				delete $[wsID]
+				return $
+			})
+			this.#parsedOperations.update(($)=> {
+				delete $[wsID]
+				return $
+			})
 			return $
 		})
 	}
@@ -397,16 +426,13 @@ class Playground implements Readable<t_$> {
 		wsID: string,
 		{name, schema, isSchemaless}: {name?: string, schema?: string, isSchemaless?: boolean},
 	): void {
-
+		let initEngine = false
 		let err: Error|null = null
 		this._update(($)=> {
 			if (!(wsID in $.workspaces)) {
 				err = new Error(`no workspace by id "${wsID}" exsiting`)
 				return $
 			}
-
-			let initEngine = false
-
 			if (typeof name === 'string') {
 				$.workspaces[wsID].name = name
 			}
@@ -418,13 +444,10 @@ class Playground implements Readable<t_$> {
 				initEngine = true
 				$.workspaces[wsID].isSchemaless = isSchemaless
 			}
-
-			if (initEngine) {
-				this._debouncedEngineInit(wsID)
-			}
 			return $
 		})
 		if (err !== null) {throw err}
+		if (initEngine) {this._debouncedEngineInit(wsID)}
 	}
 
 	/* :: TEMPLATE :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -443,12 +466,14 @@ class Playground implements Readable<t_$> {
 
 	public deleteTemplate(wsID: string, idx: number): void {
 		let err: Error|null = null
+		let tplID = ''
 		this._update(($)=> {
 			if (idx < 0 || idx >= $.workspaces[wsID].templates.length) {
 				err = new Error(`no template by index "${idx}" existing`)
 				return $
 			}
 
+			tplID = $.workspaces[wsID].templates[idx].id
 			if ($.workspaces[wsID].templates.length < 2) {
 				$.workspaces[wsID].templates[0].name = ''
 				$.workspaces[wsID].templates[0].source = ''
@@ -457,8 +482,12 @@ class Playground implements Readable<t_$> {
 			}
 			return $
 		})
-		this.initEngine(wsID)
 		if (err !== null) {throw err}
+		this.#errors.update(($)=> {
+			delete $[wsID].templates[tplID]
+			return $
+		})
+		this.initEngine(wsID)
 	}
 
 	public duplicateTemplate(wsID: string, idx: number): void {
@@ -478,14 +507,14 @@ class Playground implements Readable<t_$> {
 			})
 			return $
 		})
-		this.initEngine(wsID)
 		if (err !== null) {throw err}
+		this.initEngine(wsID)
 	}
 
 	public updateTemplate(
 		wsID: string,
 		idx: number,
-		{name, source}: Partial<GG_Template>,
+		{name, source}: Partial<Exclude<GG_Template, 'id'>>,
 	): void {
 		let err: Error|null = null
 		this._update(($)=> {
@@ -500,10 +529,10 @@ class Playground implements Readable<t_$> {
 			if (typeof source === 'string') {
 				$.workspaces[wsID].templates[idx].source = source
 			}
-			this._debouncedEngineInit(wsID, $)
 			return $
 		})
 		if (err !== null) {throw err}
+		this._debouncedEngineInit(wsID)
 	}
 
 	/* :: QUERY ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -521,23 +550,36 @@ class Playground implements Readable<t_$> {
 
 	public deleteQuery(wsID: string, idx: number): void {
 		let err: Error|null = null
+		let queryID = ''
 		this._update(($)=> {
 			if (idx < 0 || idx >= $.workspaces[wsID].queries.length) {
 				err = new Error(`no query by index "${idx}" existing`)
 				return $
 			}
 
+			queryID = $.workspaces[wsID].queries[idx].id
 			if ($.workspaces[wsID].queries.length < 2) {
 				$.workspaces[wsID].queries[0].name = ''
 				$.workspaces[wsID].queries[0].query = ''
 				$.workspaces[wsID].queries[0].variables = ''
-				$.workspaces[wsID].queries[0].results = null
 			} else {
 				$.workspaces[wsID].queries.splice(idx, 1)
 			}
 			return $
 		})
 		if (err !== null) {throw err}
+		this.#errors.update(($)=> {
+			delete $[wsID][queryID]
+			return $
+		})
+		this.#queryResults.update(($)=> {
+			delete $[wsID][queryID]
+			return $
+		})
+		this.#parsedOperations.update(($)=> {
+			delete $[wsID][queryID]
+			return $
+		})
 	}
 
 	public duplicateQuery(wsID: string, idx: number): void {
@@ -555,19 +597,21 @@ class Playground implements Readable<t_$> {
 				name: query.name ? query.name + ' - copy' : '',
 				query: query.query,
 				variables: query.variables,
-				results: query.results ? {...query.results} : null
 			})
 			return $
 		})
 		if (err !== null) {throw err}
+		this.parseOperation(wsID, idx)
 	}
 
 	public updateQuery(
 		wsID: string,
 		idx: number,
-		{name, query, results, variables}: Partial<GG_Query>,
+		{name, query, variables}: Partial<Exclude<GG_Query, 'id'>>,
 	): void {
+		let shouldParseQuery = false
 		let err: Error|null = null
+		let queryID = ''
 		this._update(($)=> {
 			if (wsID === null) {
 				err = new Error('no workspace selected')
@@ -578,24 +622,25 @@ class Playground implements Readable<t_$> {
 				return $
 			}
 
+			queryID = $.workspaces[wsID].queries[idx].id
 			if (typeof name === 'string') {
 				$.workspaces[wsID].queries[idx].name = name
 			}
 			if (typeof query === 'string') {
+				shouldParseQuery = true
 				$.workspaces[wsID].queries[idx].query = query
 			}
 			if (typeof variables === 'string') {
 				$.workspaces[wsID].queries[idx].variables = variables
 			}
-			if (results) {
-				$.workspaces[wsID].queries[idx].results = {
-					matched: results.matched,
-					error: results.error,
-				}
-			}
 			return $
 		})
 		if (err !== null) {throw err}
+		this.#queryResults.update(($)=> {
+			delete $[wsID][queryID]
+			return $
+		})
+		if (shouldParseQuery) {this._debouncedParseOperation(wsID, idx)}
 	}
 
 	/* :: ENGINE :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -607,6 +652,10 @@ class Playground implements Readable<t_$> {
 		this.#engineInited.set(false)
 		const schemaSource = $ws.workspaces[wsID].isSchemaless ? '' : $ws.workspaces[wsID].schema
 		const err = this._engine.init<any>(schemaSource, $ws.workspaces[wsID].templates)
+		this.#queryResults.update(($)=> {
+			$[wsID] = {}
+			return $
+		})
 		this.#errors.update(($)=> {
 			if (err === null) {
 				delete $[wsID]
@@ -614,17 +663,18 @@ class Playground implements Readable<t_$> {
 			}
 			switch (err.code) {
 			case EngineAPI_InitErrorCode.INIT_GQT_PARSER:
-				$[wsID] = {gqt: err.errors, schema: null, templates: {}}
+				$[wsID] = {gqt: err.errors, schema: null, templates: {}, queries: {}}
 				break
 			case EngineAPI_InitErrorCode.SCHEMA_ERR:
-				$[wsID] = {schema: err.errors, gqt: null, templates: {}}
+				$[wsID] = {schema: err.errors, gqt: null, templates: {}, queries: {}}
 				break
 			case EngineAPI_InitErrorCode.TEMPLATE_ERR:
-				$[wsID] = {templates: err.errors, schema: null, gqt: null}
+				$[wsID] = {templates: err.errors, gqt: null, schema: null, queries: {}}
 				break
 			}
 			return $
 		})
+		this.parseAllOperations(wsID)
 		this.#engineInited.set(true)
 		return err
 	}
@@ -633,7 +683,7 @@ class Playground implements Readable<t_$> {
 		return this._engine.matchAll(query, operationName, variablesJSON)
 	}
 
-	public executeQuery(wsID: string, queryID: string) {
+	public executeQuery(wsID: string, queryID: string, operationName?: string) {
 		this._panicWhenEngineIsIniting()
 
 		const $ = this.$()
@@ -649,30 +699,61 @@ class Playground implements Readable<t_$> {
 	
 		const result = this._engineMatchAll(
 			ws.queries[queryIdx].query,
-			'',
+			typeof operationName === 'string' ? operationName : '',
 			ws.queries[queryIdx].variables,
 		)
 
-		let err: Error|null = null
-		this._update(($)=> {
-			const query = $.workspaces[wsID].queries[queryIdx]
-			query.results = {
-				matched: [],
+		this.#queryResults.update(($)=> {
+			$[wsID][ws.queries[queryIdx].id] = {
+				matched: result.matched || [],
 				error: result?.error || null,
-			}
-			if (result.matched) {
-				for (const refID of result.matched) {
-					const tpl = $.workspaces[wsID].templates.find(({id})=> id === refID)
-					if (tpl === undefined) {
-						err = new Error('something went wrong')
-						return $
-					}
-					query.results.matched.push({refID, name: tpl.name})
-				}
 			}
 			return $
 		})
-		if (err !== null) {throw err}
+	}
+
+	private _debouncedParseOperation = debounce(
+		(wsID: string, queryIdx: number)=> this.parseOperation(wsID, queryIdx),
+		300,
+	)
+
+	public parseAllOperations(wsID: string) {
+		const $ws = this.$().workspaces[wsID]
+		$ws.queries.forEach((_, idx)=> this.parseOperation(wsID, idx))
+	}
+
+	public parseOperation(wsID: string, queryIdx: number) {
+		const $ws = this.$().workspaces[wsID]
+		const query = $ws.queries[queryIdx]
+		const parsed = this._engine.parseOperation(query.query)
+		if (typeof parsed.code === 'string') {
+			this.#errors.update(($)=> {
+				if (!(wsID in $)) {
+					$[wsID] = {
+						gqt: null,
+						schema: null,
+						templates: {},
+						queries: {[query.id]: [parsed.errors as string]},
+					}
+				} else {
+					$[wsID].queries[query.id] = [parsed.errors as string]
+				}
+				return $
+			})
+		}
+		else if (parsed.operations) {
+			const ops = parsed.operations as Array<EngineAPI_Operation>
+			this.#errors.update(($)=> {
+				if (wsID in $) {delete $[wsID].queries[query.id]}
+				return $
+			})
+			this.#parsedOperations.update(($)=> {
+				if (!(wsID in $)) {$[wsID] = {}}
+				if (ops.length < 1) {delete $[wsID][query.id]}
+				else {$[wsID][query.id] = ops}
+				return $
+			})
+		}
 	}
 }
 
