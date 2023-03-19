@@ -119,7 +119,9 @@ class:no-style={noStyle}>
 				color: rgba(var(--clr-red), 0.5)
 		&:hover
 			background-color: rgba(var(--font-base-clr), 0.15)
+			border-color: rgba(var(--font-base-clr), 0.75)
 		&.focused
-			box-shadow: 0 0 0 1px rgb(var(--clr-accent)), 0 0 0 0.25em rgba(var(--clr-accent), 0.15)
-			background-color: rgba(var(--clr-accent), 0.15)
+			box-shadow: 0 0 0 0.25em rgba(var(--clr-accent), 0.15)
+			background-color: rgb(var(--box-bg))
+			border-color: rgb(var(--clr-accent))
 </style>
