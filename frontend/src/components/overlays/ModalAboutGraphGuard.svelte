@@ -30,7 +30,7 @@
 				Visit <a href='https://docs.graphguard.io' target='_blank' rel='noreferrer'>docs.graphguard.io</a>
 				for more information and help.</p>
 			<p>
-				ggproxy is currently under development and as such, it may contain bugs or other issues. Our team is
+				🚧 ggproxy is currently under development and as such, it may contain bugs or other issues. Our team is
 				working hard to ensure stablity and reliability, but it is important to note that there may be
 				unforeseen issues that arise during the development process.
 			</p>
