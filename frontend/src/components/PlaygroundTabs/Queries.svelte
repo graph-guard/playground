@@ -7,6 +7,11 @@ import EntityEditor from './_EntityEditor.svelte'
 import {Pane, Splitpanes} from 'svelte-splitpanes'
 import rippleEffect from '../../utils/ripple'
 import Icon from '../snippets/Icon.svelte'
+import {onDestroy, onMount} from 'svelte'
+import {newCodeEditor, type CMEditor} from '../../utils/code_mirror'
+import {EditorView} from 'codemirror'
+import {Compartment} from '@codemirror/state'
+import {json as cmJson} from '@codemirror/lang-json'
 
 $:wsID = $uiState.selectedWorkspaceID
 $:wsUIState = $uiState.workspaces[wsID]
@@ -23,6 +28,7 @@ $:hasAnyErrors = (
 	)
 )
 $:queryExecutionNotAllowed = !$isEngineInited || hasAnyErrors
+$:selQueryIdx,updateQueryEditor(),updateVariablesEditor();
 
 function openDeleteConfirmDialog() {
 	let title = `Delete untitled query ${selQueryIdx+1}`
@@ -52,15 +58,6 @@ function onNameInput(name: string) {
 	workspace.updateQuery(wsID, selQueryIdx, {name})
 }
 
-function onQueryInput(query: string) {
-	workspace.updateQuery(wsID, selQueryIdx, {query})
-	
-}
-
-function onVaraiblesInput(variables: string) {
-	workspace.updateQuery(wsID, selQueryIdx, {variables})
-}
-
 function newQuery() {
 	workspace.newQuery(wsID)
 	uiState.selectQuery(WS.queries.length-1)
@@ -82,6 +79,55 @@ function openTplRef(tplID: string) {
 	uiState.selectTemplate(idx)
 	uiState.setTab(PlaygroundTab.SchemaAndTemplates)
 }
+
+const queryEditor: CMEditor = {state: null, view: null, el: null}
+const variablesEditor: CMEditor = {state: null, view: null, el: null}
+
+function updateQueryEditor() {
+	queryEditor.view?.destroy()
+	queryEditor.state = newCodeEditor(selQuery.query, {
+		extensions: [
+			EditorView.editorAttributes.of({class: 'default-theme'}),
+			EditorView.updateListener.of((update)=> {
+				if (update.docChanged) {
+					workspace.updateQuery(wsID, selQueryIdx, {query: update.state.doc.toString()})
+				}
+			}),
+		],
+	})
+	queryEditor.view = new EditorView({
+		state: queryEditor.state,
+		parent: queryEditor.el as HTMLElement,
+	})
+}
+
+function updateVariablesEditor() {
+	variablesEditor.view?.destroy()
+	variablesEditor.state = newCodeEditor(selQuery.variables, {
+		extensions: [
+			EditorView.editorAttributes.of({class: 'default-theme'}),
+			EditorView.updateListener.of((update)=> {
+				if (update.docChanged) {
+					workspace.updateQuery(wsID, selQueryIdx, {variables: update.state.doc.toString()})
+				}
+			}),
+			(new Compartment).of(cmJson()),
+		],
+	})
+	variablesEditor.view = new EditorView({
+		state: variablesEditor.state,
+		parent: variablesEditor.el as HTMLElement,
+	})
+}
+
+onMount(()=> {
+	updateQueryEditor()
+	updateVariablesEditor()
+})
+onDestroy(()=> {
+	queryEditor.view?.destroy()
+	variablesEditor.view?.destroy()
+})
 </script>
 
 <div id='Queries'>
@@ -115,9 +161,7 @@ function openTplRef(tplID: string) {
 							on:delete={openDeleteConfirmDialog}
 							on:duplicate={duplicateQuery}
 							on:nameChange={({detail})=> onNameInput(detail)}>
-								<textarea
-									on:input={(event)=> onQueryInput(event.currentTarget.value)}
-								>{selQuery.query}</textarea>
+								<div class='cm-editor-wrapper' bind:this={queryEditor.el}/>
 							</EntityEditor>
 						</div>
 					</Pane>
@@ -126,10 +170,8 @@ function openTplRef(tplID: string) {
 							<header class='title-wrapper flex flex-center-y flex-base-size'>
 								<span class='title'>Variables</span>
 							</header>
-							<div class='flex-base-size-var'>
-								<textarea
-									on:input={(event)=> onVaraiblesInput(event.currentTarget.value)}
-								>{selQuery.variables}</textarea>
+							<div class='flex-base-size-var pane-scrollable-content'>
+								<div class='cm-editor-wrapper' bind:this={variablesEditor.el}/>
 							</div>
 						</div>
 					</Pane>
@@ -202,19 +244,4 @@ function openTplRef(tplID: string) {
 				border-radius: 0.25rem
 	.variables-input .title
 		padding: 0.25rem
-	textarea
-		padding: 0.5rem
-		height: 100%
-		width: 100%
-		resize: none
-		font-family: 'Fira Code'
-		color: rgb(var(--font-heading-clr))
-		tab-size: 2rem
-		white-space: pre
-		transition: var(--trans)
-		transition-property: outline
-		outline: dotted 2px transparent
-		outline-offset: -2px
-		&:focus
-			outline-color: rgb(var(--clr-accent))
 </style>

@@ -175,6 +175,8 @@ export type Props = void;
 				> .content
 					padding: 0.75rem
 					overflow: hidden
+					> :global(.app-input-auto-width)
+						font-size: 1.15rem
 				&.selected
 					background-color: rgba(var(--clr-accent), 0.15)
 				> .delete

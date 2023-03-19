@@ -17,8 +17,8 @@ export let selected = false
 	transition-property: border-color
 	&:before
 		content: ''
-		width: 50%
-		height: 50%
+		width: 60%
+		height: 60%
 		border-radius: inherit
 		transition: var(--trans)
 		transition-property: transform

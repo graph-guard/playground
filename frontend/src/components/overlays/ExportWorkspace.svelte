@@ -9,7 +9,7 @@
 			</button>
 		</div>
 		<div class='body'>
-			<textarea readonly rows={10} class='inpt'>{JSON.stringify(exportedWs, null, '\t')}</textarea>
+			<div class='cm-editor-wrapper' style:height='400px' bind:this={exportedJsonPreview.el}/>
 		</div>
 		<div class='footer flex flex-end gap-1'>
 			<button on:click={jsonToClipboard} use:rippleEffect class='btn accent'>
@@ -32,7 +32,7 @@ export type Props = void;
 </script>
 
 <script lang='ts'>
-import {onMount} from 'svelte'
+import {onMount, onDestroy} from 'svelte'
 import {fade, modalTransition} from '../../utils/transitions'
 import {createEventDispatcher} from 'svelte'
 import rippleEffect from '../../utils/ripple'
@@ -41,15 +41,14 @@ import {$ as workspace} from '../../stores/playground'
 import Icon from '../snippets/Icon.svelte'
 import download from 'downloadjs'
 import {copyToClipboard} from '../../utils/misc'
+import {newCodeEditor, type CMEditor} from '../../utils/code_mirror'
+import {EditorView} from 'codemirror'
+import {Compartment} from '@codemirror/state'
+import {json as cmJson} from '@codemirror/lang-json'
 const dispatch = createEventDispatcher<{close: void, mounted: HTMLElement}>()
 
 let thisEl: HTMLElement
-
 const exportedWs = workspace.export($uiState.selectedWorkspaceID)
-
-onMount(()=> {
-	dispatch('mounted', thisEl)
-})
 
 function closeThis() {
 	dispatch('close')
@@ -66,6 +65,26 @@ function downloadJson() {
 function jsonToClipboard() {
 	copyToClipboard(JSON.stringify(exportedWs, null, '\t'))
 }
+
+const exportedJsonPreview: CMEditor = {state: null, view: null, el: null}
+
+onMount(()=> {
+	dispatch('mounted', thisEl)
+	exportedJsonPreview.state = newCodeEditor(JSON.stringify(exportedWs, null, '\t'), {
+		readonly: true,
+		extensions: [
+			EditorView.editorAttributes.of({class: 'default-theme'}),
+			(new Compartment).of(cmJson()),
+		],
+	})
+	exportedJsonPreview.view = new EditorView({
+		state: exportedJsonPreview.state,
+		parent: exportedJsonPreview.el as HTMLElement,
+	})
+})
+onDestroy(()=> {
+	exportedJsonPreview.view?.destroy()
+})
 </script>
 
 
@@ -78,13 +97,14 @@ function jsonToClipboard() {
 		margin-bottom: 1rem
 		> h1
 			font-size: 1.75rem
-	.body textarea
-		width: 100%
-		min-height: calc(2rem)
+	.body .cm-editor-wrapper
 		resize: vertical
-		tab-size: 4ch
-		font-family: var(--font-code-stack)
-		color: rgb(var(--font-heading-clr))
+		overflow: hidden
+		min-height: 6rem
+		border: solid 2px rgba(var(--font-base-clr), 0.15)
+		border-radius: 0.5rem
+		:global(.cm-editor)
+			height: 100%
 	.footer
 		margin-top: 2rem
 </style>

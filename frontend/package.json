@@ -11,9 +11,18 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
+    "@codemirror/commands": "^6.2.2",
+    "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/language": "^6.6.0",
+    "@codemirror/search": "^6.2.3",
+    "@codemirror/state": "^6.2.0",
+    "@codemirror/theme-one-dark": "^6.1.1",
+    "@codemirror/view": "^6.9.2",
     "@sveltejs/vite-plugin-svelte": "^2.0.3",
     "@tsconfig/svelte": "^3.0.0",
     "autoprefixer": "^10.4.13",
+    "codemirror": "^6.0.1",
+    "downloadjs": "^1.4.7",
     "graphql": "^16.6.0",
     "lodash": "^4.17.21",
     "postcss": "^8.4.21",
@@ -27,8 +36,5 @@
     "tslib": "^2.5.0",
     "typescript": "^4.9.5",
     "vite": "^4.1.4"
-  },
-  "dependencies": {
-    "downloadjs": "^1.4.7"
   }
 }

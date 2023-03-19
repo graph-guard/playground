@@ -43,7 +43,7 @@ export let disableQueryExecution = false
 	</div>
 </header>
 
-<div class='flex-base-size-var flex flex-col'>
+<div class='flex-base-size-var flex flex-col pane-scrollable-content'>
 	<slot/>
 </div>
 

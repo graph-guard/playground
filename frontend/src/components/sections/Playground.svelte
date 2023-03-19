@@ -227,6 +227,7 @@ onMount(()=> {
 					overflow: hidden
 					text-overflow: ellipsis
 	main
+		overflow: hidden
 		:global(header.title-wrapper)
 			padding: 0.5rem
 			color: rgb(var(--font-heading-clr))
@@ -247,4 +248,11 @@ onMount(()=> {
 			border: solid 1px var(--playground-border)
 			@supports (-webkit-backdrop-filter: blur(0px))
 				overflow: hidden
+			:global(.pane-scrollable-content)
+				overflow: hidden
+			:global(.cm-editor-wrapper)
+				width: 100%
+				height: 100%
+				:global(.cm-editor)
+					height: 100%
 </style>

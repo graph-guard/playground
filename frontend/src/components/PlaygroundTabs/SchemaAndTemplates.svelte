@@ -5,6 +5,9 @@ import {openOverlay} from '../sections/Overlays.svelte'
 import EntryList from './_EntryList.svelte'
 import EntityEditor from './_EntityEditor.svelte'
 import {Pane, Splitpanes} from 'svelte-splitpanes'
+import {newCodeEditor, type CMEditor} from '../../utils/code_mirror'
+import {EditorView} from 'codemirror'
+import {onDestroy, onMount} from 'svelte'
 
 $:wsID = $uiState.selectedWorkspaceID
 $:wsUIState = $uiState.workspaces[wsID]
@@ -15,6 +18,7 @@ $:errors = workspace.errors
 $:wsErrors = wsID in $errors ? $errors[wsID] : null
 $:schemaErrors = wsErrors !== null ? wsErrors.schema : null
 $:selTplErrors = wsErrors !== null && selTpl.id in wsErrors.templates ? wsErrors.templates[selTpl.id] : null
+$:selTplIdx,updateTemplateEditor();
 
 function openDeleteConfirmDialog() {
 	let title = `Delete untitled template ${selTplIdx+1}`
@@ -44,10 +48,6 @@ function onNameInput(name: string) {
 	workspace.updateTemplate(wsID, selTplIdx, {name})
 }
 
-function onSourceInput(source: string) {
-	workspace.updateTemplate(wsID, selTplIdx, {source})
-}
-
 function newTemplate() {
 	workspace.newTemplate(wsID)
 	uiState.selectTemplate(WS.templates.length-1)
@@ -58,9 +58,49 @@ function duplicateTemplate() {
 	uiState.selectTemplate(selTplIdx+1)
 }
 
-function onSchemaInput(schema: string) {
-	workspace.updateWorkspace(wsID, {schema})
+const templateEditor: CMEditor = {state: null, view: null, el: null}
+const schemaEditor: CMEditor = {state: null, view: null, el: null}
+
+function updateTemplateEditor() {
+	templateEditor.view?.destroy()
+	templateEditor.state = newCodeEditor(selTpl.source, {
+		extensions: [
+			EditorView.editorAttributes.of({class: 'default-theme'}),
+			EditorView.updateListener.of((update)=> {
+				if (update.docChanged) {
+					workspace.updateTemplate(wsID, selTplIdx, {source: update.state.doc.toString()})
+				}
+			}),
+		],
+	})
+	templateEditor.view = new EditorView({
+		state: templateEditor.state,
+		parent: templateEditor.el as HTMLElement,
+	})
 }
+
+onMount(()=> {
+	updateTemplateEditor()
+
+	schemaEditor.state = newCodeEditor(WS.schema, {
+		extensions: [
+			EditorView.editorAttributes.of({class: 'default-theme'}),
+			EditorView.updateListener.of((update)=> {
+				if (update.docChanged) {
+					workspace.updateWorkspace(wsID, {schema: update.state.doc.toString()})
+				}
+			}),
+		],
+	})
+	schemaEditor.view = new EditorView({
+		state: schemaEditor.state,
+		parent: schemaEditor.el as HTMLElement,
+	})
+})
+onDestroy(()=> {
+	templateEditor.view?.destroy()
+	schemaEditor.view?.destroy()
+})
 </script>
 
 
@@ -99,9 +139,7 @@ function onSchemaInput(schema: string) {
 							on:delete={openDeleteConfirmDialog}
 							on:duplicate={duplicateTemplate}
 							on:nameChange={({detail})=> onNameInput(detail)}>
-								<textarea
-									on:input={(event)=> onSourceInput(event.currentTarget.value)}
-								>{selTpl.source}</textarea>
+								<div class='cm-editor-wrapper' bind:this={templateEditor.el}/>
 							</EntityEditor>
 						{/if}
 					</div>
@@ -131,10 +169,8 @@ function onSchemaInput(schema: string) {
 						<header class='title-wrapper flex flex-center-y flex-base-size'>
 							<span class='title'>Schema</span>
 						</header>
-						<div class='flex-base-size-var'>
-							<textarea
-								on:input={(event)=> onSchemaInput(event.currentTarget.value)}
-							>{WS.schema}</textarea>
+						<div class='flex-base-size-var pane-scrollable-content'>
+							<div class='cm-editor-wrapper' bind:this={schemaEditor.el}/>
 						</div>
 					</div>
 				</Pane>
@@ -204,19 +240,4 @@ function onSchemaInput(schema: string) {
 						background-color: rgba(var(--clr-red-darker), 0.5)
 						border: solid 1px rgba(var(--clr-red), 0.5)
 						color: #fff
-	textarea
-		padding: 0.5rem
-		height: 100%
-		width: 100%
-		resize: none
-		font-family: 'Fira Code'
-		color: rgb(var(--font-heading-clr))
-		tab-size: 2rem
-		white-space: pre
-		transition: var(--trans)
-		transition-property: outline
-		outline: dotted 2px transparent
-		outline-offset: -2px
-		&:focus
-			outline-color: rgb(var(--clr-accent))
 </style>

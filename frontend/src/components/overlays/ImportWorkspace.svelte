@@ -21,13 +21,8 @@
 					on:input={({currentTarget})=> onFileSelected(currentTarget.files?.item(0) || null)}
 				/>
 			</div>
-			<textarea bind:value={userInput}
-				on:input={validateUserInput}
-				rows={4}
-				class='inpt'
-				class:has-error={!isValidJson}
-				placeholder='or paste the JSON here'
-			></textarea>
+			<span class='input-separator flex flex-center-y gap-1'>or paste JSON here:</span>
+			<div class='cm-editor-wrapper' class:has-error={!isValidJson} style:height='200px' bind:this={userInputEditor.el}/>
 		</div>
 		<div class='footer flex flex-center-y flex-end gap-1'>
 			{#if !isValidJson}
@@ -50,7 +45,7 @@ export type Props = void;
 </script>
 
 <script lang='ts'>
-import {onMount} from 'svelte'
+import {onDestroy, onMount} from 'svelte'
 import {fade, modalTransition} from '../../utils/transitions'
 import {createEventDispatcher} from 'svelte'
 import rippleEffect from '../../utils/ripple'
@@ -59,14 +54,14 @@ import {$ as workspace, type GG_ImportWorkspace} from '../../stores/playground'
 import Icon from '../snippets/Icon.svelte'
 import type {openOverlay} from '../sections/Overlays.svelte'
 import debounce from 'lodash/debounce'
+import {newCodeEditor, type CMEditor} from '../../utils/code_mirror'
+import {EditorView} from 'codemirror'
+import {Compartment} from '@codemirror/state'
+import {json as cmJson} from '@codemirror/lang-json'
 const dispatch = createEventDispatcher<{close: void, mounted: HTMLElement}>()
 
 let thisEl: HTMLElement
 export let openOverlay: openOverlay
-
-onMount(()=> {
-	dispatch('mounted', thisEl)
-})
 
 let userInput = ''
 let isDropZoneActive = false
@@ -102,6 +97,7 @@ async function onFileSelected(file: File|null) {
 	} catch(err) {
 		isValidJson = false
 		checkingJson = false
+		userInputEditor.view?.dispatch({changes: {from: 0, insert: userInput}})
 		console.error(err)
 		openOverlay({name: 'dialog', props: {
 			title: 'Failed to import file',
@@ -117,6 +113,31 @@ function importWs() {
 	)
 	closeThis()
 }
+
+const userInputEditor: CMEditor = {state: null, view: null, el: null}
+
+onMount(()=> {
+	dispatch('mounted', thisEl)
+	userInputEditor.state = newCodeEditor('', {
+		extensions: [
+			EditorView.editorAttributes.of({class: 'default-theme'}),
+			EditorView.updateListener.of((update)=> {
+				if (update.docChanged) {
+					userInput = update.state.doc.toString()
+					validateUserInput()
+				}
+			}),
+			(new Compartment).of(cmJson()),
+		],
+	})
+	userInputEditor.view = new EditorView({
+		state: userInputEditor.state,
+		parent: userInputEditor.el as HTMLElement,
+	})
+})
+onDestroy(()=> {
+	userInputEditor.view?.destroy()
+})
 </script>
 
 
@@ -133,7 +154,6 @@ function importWs() {
 		.drop-zone
 			position: relative
 			width: 100%
-			margin-bottom: 1rem
 			padding: 1.5rem
 			border-radius: 0.5rem
 			border: dashed 1.5px rgba(var(--font-base-clr), 0.25)
@@ -160,13 +180,23 @@ function importWs() {
 					color: rgb(var(--font-heading-clr))
 			&.about-to-drop
 				box-shadow: 0 0 0 0.25rem rgba(var(--clr-accent), 0.15)
-		textarea
-			width: 100%
+		.input-separator
+			margin: 1rem 0
+			color: rgba(var(--font-base-clr), 0.6)
+			&:before, &:after
+				content: ''
+				flex: 1 1 auto
+				border-top: solid 1px rgba(var(--font-base-clr), 0.1)
+		.cm-editor-wrapper
 			resize: vertical
-			tab-size: 4ch
-			min-height: calc(2rem)
-			font-family: var(--font-code-stack)
-			color: rgb(var(--font-heading-clr))
+			overflow: hidden
+			min-height: 2rem
+			border: solid 2px rgba(var(--font-base-clr), 0.15)
+			border-radius: 0.5rem
+			:global(.cm-editor)
+				height: 100%
+			&.has-error
+				border-color: rgb(var(--clr-red))
 	.footer
 		margin-top: 2rem
 		.invalid-json-label
