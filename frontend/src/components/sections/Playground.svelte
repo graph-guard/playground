@@ -237,7 +237,7 @@ onMount(()=> {
 			:global(span.title)
 				text-transform: uppercase
 				padding: 0.75rem
-			:global(button)
+			:global(button.btn-icon)
 				font-size: 1.25rem
 				--btn-pdng: 0.5em
 		:global(.pane-contents)

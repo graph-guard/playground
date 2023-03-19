@@ -77,6 +77,7 @@ export type GG_Workspace = VersionedEntity & {
 	creation: number
 	templates: Array<GG_Template>
 	queries: Array<GG_Query>
+	isSchemaless: boolean
 }
 
 export type GG_ImportQuery = Partial<VersionedEntity & {name: string, query: string, variables: string}>
@@ -153,9 +154,15 @@ class Playground implements Readable<t_$> {
 
 	private _validateTemplate(possibleTpl: GG_Template): GG_Template|null {
 		const tpl = this._newTemplateObj()
-		if (possibleTpl.id) {tpl.id = possibleTpl.id}
-		if (possibleTpl.name) {tpl.name = possibleTpl.name}
-		if (possibleTpl.source) {tpl.source = possibleTpl.source}
+		if (typeof possibleTpl.id === 'string') {
+			tpl.id = possibleTpl.id
+		}
+		if (typeof possibleTpl.name === 'string') {
+			tpl.name = possibleTpl.name
+		}
+		if (typeof possibleTpl.source === 'string') {
+			tpl.source = possibleTpl.source
+		}
 
 		// if (tpl._version !== TEMPLATE_VERSION) {/* migrate */}
 		return tpl
@@ -163,10 +170,18 @@ class Playground implements Readable<t_$> {
 
 	private _validateQuery(possibleQuery: GG_Query): GG_Query|null {
 		const query = this._newQueryObj()
-		if (possibleQuery.id) {query.id = possibleQuery.id}
-		if (possibleQuery.name) {query.name = possibleQuery.name}
-		if (possibleQuery.query) {query.query = possibleQuery.query}
-		if (possibleQuery.variables) {query.variables = possibleQuery.variables}
+		if (typeof possibleQuery.id === 'string') {
+			query.id = possibleQuery.id
+		}
+		if (typeof possibleQuery.name === 'string') {
+			query.name = possibleQuery.name
+		}
+		if (typeof possibleQuery.query === 'string') {
+			query.query = possibleQuery.query
+		}
+		if (typeof possibleQuery.variables === 'string') {
+			query.variables = possibleQuery.variables
+		}
 
 		// if (query._version !== QUERY_VERSION) {/* migrate */}
 		return query
@@ -174,9 +189,18 @@ class Playground implements Readable<t_$> {
 
 	private _validateWorkspace(possibleWs: GG_Workspace): GG_Workspace|null {
 		const ws = this._newWorkspaceObj()
-		if (possibleWs.id) {ws.id = possibleWs.id}
-		if (possibleWs.name) {ws.name = possibleWs.name}
-		if (possibleWs.schema) {ws.schema = possibleWs.schema}
+		if (typeof possibleWs.id === 'string') {
+			ws.id = possibleWs.id
+		}
+		if (typeof possibleWs.name === 'string') {
+			ws.name = possibleWs.name
+		}
+		if (typeof possibleWs.schema === 'string') {
+			ws.schema = possibleWs.schema
+		}
+		if (typeof possibleWs.isSchemaless === 'boolean') {
+			ws.isSchemaless = possibleWs.isSchemaless
+		}
 
 		if (Number.isFinite(possibleWs.creation)) {
 			ws.creation = possibleWs.creation
@@ -333,6 +357,7 @@ class Playground implements Readable<t_$> {
 			creation: Date.now(),
 			templates: [this._newTemplateObj()],
 			queries: [this._newQueryObj()],
+			isSchemaless: false,
 		}
 	}
 
@@ -370,7 +395,7 @@ class Playground implements Readable<t_$> {
 
 	public updateWorkspace(
 		wsID: string,
-		{name, schema}: {name?: string, schema?: string},
+		{name, schema, isSchemaless}: {name?: string, schema?: string, isSchemaless?: boolean},
 	): void {
 
 		let err: Error|null = null
@@ -380,11 +405,21 @@ class Playground implements Readable<t_$> {
 				return $
 			}
 
+			let initEngine = false
+
 			if (typeof name === 'string') {
 				$.workspaces[wsID].name = name
 			}
 			if (typeof schema === 'string') {
+				initEngine = true
 				$.workspaces[wsID].schema = schema
+			}
+			if (typeof isSchemaless === 'boolean') {
+				initEngine = true
+				$.workspaces[wsID].isSchemaless = isSchemaless
+			}
+
+			if (initEngine) {
 				this._debouncedEngineInit(wsID)
 			}
 			return $
@@ -570,7 +605,8 @@ class Playground implements Readable<t_$> {
 	public initEngine(wsID: string): EngineAPI_InitError<any>|null {
 		const $ws = this.$()
 		this.#engineInited.set(false)
-		const err = this._engine.init<any>($ws.workspaces[wsID].schema, $ws.workspaces[wsID].templates)
+		const schemaSource = $ws.workspaces[wsID].isSchemaless ? '' : $ws.workspaces[wsID].schema
+		const err = this._engine.init<any>(schemaSource, $ws.workspaces[wsID].templates)
 		this.#errors.update(($)=> {
 			if (err === null) {
 				delete $[wsID]

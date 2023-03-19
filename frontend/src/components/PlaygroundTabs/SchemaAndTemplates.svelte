@@ -8,6 +8,8 @@ import {Pane, Splitpanes} from 'svelte-splitpanes'
 import {newCodeEditor, type CMEditor} from '../../utils/code_mirror'
 import {EditorView} from 'codemirror'
 import {onDestroy, onMount} from 'svelte'
+import rippleEffect from '../../utils/ripple'
+import {fade} from '../../utils/transitions'
 
 $:wsID = $uiState.selectedWorkspaceID
 $:wsUIState = $uiState.workspaces[wsID]
@@ -18,7 +20,10 @@ $:errors = workspace.errors
 $:wsErrors = wsID in $errors ? $errors[wsID] : null
 $:schemaErrors = wsErrors !== null ? wsErrors.schema : null
 $:selTplErrors = wsErrors !== null && selTpl.id in wsErrors.templates ? wsErrors.templates[selTpl.id] : null
-$:selTplIdx,updateTemplateEditor();
+$:isSchemalessMode = WS.isSchemaless
+$:wsID,selTplIdx,updateTemplateEditor();
+$:wsID,updateSchemaEditor();
+$:isSchemalessMode,updateSchemaEditor();
 
 function openDeleteConfirmDialog() {
 	let title = `Delete untitled template ${selTplIdx+1}`
@@ -79,10 +84,10 @@ function updateTemplateEditor() {
 	})
 }
 
-onMount(()=> {
-	updateTemplateEditor()
-
+function updateSchemaEditor() {
+	schemaEditor.view?.destroy()
 	schemaEditor.state = newCodeEditor(WS.schema, {
+		readonly: isSchemalessMode,
 		extensions: [
 			EditorView.editorAttributes.of({class: 'default-theme'}),
 			EditorView.updateListener.of((update)=> {
@@ -96,6 +101,15 @@ onMount(()=> {
 		state: schemaEditor.state,
 		parent: schemaEditor.el as HTMLElement,
 	})
+}
+
+function toggleSchemalessMode() {
+	workspace.updateWorkspace(wsID, {isSchemaless: !isSchemalessMode})
+}
+
+onMount(()=> {
+	updateTemplateEditor()
+	updateSchemaEditor()
 })
 onDestroy(()=> {
 	templateEditor.view?.destroy()
@@ -150,8 +164,8 @@ onDestroy(()=> {
 							<header class='title-wrapper flex flex-center-y flex-base-size'>
 								<span class='title'>Template errors</span>
 							</header>
-							<div class='error-list flex-base-size-var flex flex-col nowrap'>
-								<div class='list grid grid-top gap-05 flex-base-size-var'>
+							<div class='pane-body flex-base-size-var flex flex-col nowrap'>
+								<div class='error-list grid grid-top gap-05 flex-base-size-var'>
 									{#each selTplErrors as err, idx}
 										<p>{idx+1}. {err}</p>
 									{/each}
@@ -165,11 +179,19 @@ onDestroy(()=> {
 		<Pane snapSize={15} size={40}>
 			<Splitpanes theme='customSplitpanes' horizontal>
 				<Pane snapSize={15}>
-					<div class='pane-contents schema-editor flex flex-col nowrap'>
+					<div class='pane-contents schema-editor flex flex-col nowrap' class:schema-less={isSchemalessMode}>
 						<header class='title-wrapper flex flex-center-y flex-base-size'>
 							<span class='title'>Schema</span>
+							<button on:click={toggleSchemalessMode} use:rippleEffect class='btn flex-self-right'>
+								{isSchemalessMode ? 'Schema-aware mode' : 'Schemaless mode'}
+							</button>
 						</header>
-						<div class='flex-base-size-var pane-scrollable-content'>
+						<div class='pane-body flex-base-size-var pane-scrollable-content'>
+							{#if isSchemalessMode}
+								<div class='schemaless-mode flex flex-center' transition:fade>
+									<span>Schemaless mode</span>
+								</div>
+							{/if}
 							<div class='cm-editor-wrapper' bind:this={schemaEditor.el}/>
 						</div>
 					</div>
@@ -180,8 +202,8 @@ onDestroy(()=> {
 							<header class='title-wrapper flex flex-center-y flex-base-size'>
 								<span class='title'>Schema errors</span>
 							</header>
-							<div class='error-list flex-base-size-var flex flex-col nowrap'>
-								<div class='list grid grid-top gap-05 flex-base-size-var'>
+							<div class='pane-body flex-base-size-var flex flex-col nowrap'>
+								<div class='error-list grid grid-top gap-05 flex-base-size-var'>
 									{#each schemaErrors as err, idx}
 										<p>{idx+1}. {err}</p>
 									{/each}
@@ -225,9 +247,9 @@ onDestroy(()=> {
 			> .title
 				padding: 0.25rem
 				color: rgb(var(--clr-red))
-		.error-list
+		.pane-body
 			overflow: hidden
-			.list
+			.error-list
 				padding: 1rem
 				overflow: auto
 				> p
@@ -240,4 +262,22 @@ onDestroy(()=> {
 						background-color: rgba(var(--clr-red-darker), 0.5)
 						border: solid 1px rgba(var(--clr-red), 0.5)
 						color: #fff
+	.schema-editor
+		.pane-body
+			position: relative
+		.schemaless-mode
+			z-index: 100
+			position: absolute
+			top: 0
+			left: 0
+			width: 100%
+			height: 100%
+			font-size: 1.25rem
+			color: rgb(var(--font-heading-clr))
+			background-color: rgba(var(--font-base-clr), 0.15)
+			@media (prefers-color-scheme: dark)
+				background-color: rgba(var(--page-bg), 0.5)
+				color: rgb(var(--font-base-clr))
+		&.schema-less .cm-editor-wrapper
+			opacity: 0.5
 </style>

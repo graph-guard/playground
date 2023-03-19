@@ -28,7 +28,7 @@ $:hasAnyErrors = (
 	)
 )
 $:queryExecutionNotAllowed = !$isEngineInited || hasAnyErrors
-$:selQueryIdx,updateQueryEditor(),updateVariablesEditor();
+$:wsID,selQueryIdx,updateQueryEditor(),updateVariablesEditor();
 
 function openDeleteConfirmDialog() {
 	let title = `Delete untitled query ${selQueryIdx+1}`
@@ -170,7 +170,7 @@ onDestroy(()=> {
 							<header class='title-wrapper flex flex-center-y flex-base-size'>
 								<span class='title'>Variables</span>
 							</header>
-							<div class='flex-base-size-var pane-scrollable-content'>
+							<div class='pane-body flex-base-size-var pane-scrollable-content'>
 								<div class='cm-editor-wrapper' bind:this={variablesEditor.el}/>
 							</div>
 						</div>
@@ -183,7 +183,7 @@ onDestroy(()=> {
 				<header class='title-wrapper flex flex-center-y flex-base-size'>
 					<span class='title'>Results</span>
 				</header>
-				<div class='matched-templates flex-base-size-var'>
+				<div class='pane-body matched-templates flex-base-size-var'>
 					{#if selQuery.results === null}
 						<span>Execute query to get results</span>
 					{:else}

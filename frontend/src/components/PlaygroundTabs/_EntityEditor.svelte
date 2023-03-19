@@ -29,14 +29,14 @@ export let disableQueryExecution = false
 	</div>
 
 	<div class='actions flex flex-base-size flex-center-y gap-05'>
-		<button on:click={()=> dispatch('delete')} use:rippleEffect class='btn'>
+		<button on:click={()=> dispatch('delete')} use:rippleEffect class='btn btn-icon'>
 			<Icon name='trash'/>
 		</button>
-		<button on:click={()=> dispatch('duplicate')} use:rippleEffect class='btn'>
+		<button on:click={()=> dispatch('duplicate')} use:rippleEffect class='btn btn-icon'>
 			<Icon name='duplicate'/>
 		</button>
 		{#if onExecuteQuery}
-			<button on:click={onExecuteQuery} use:rippleEffect disabled={disableQueryExecution} class='btn'>
+			<button on:click={onExecuteQuery} use:rippleEffect disabled={disableQueryExecution} class='btn btn-icon'>
 				<Icon name='play'/>
 			</button>
 		{/if}

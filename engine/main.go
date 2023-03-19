@@ -28,23 +28,29 @@ func Init(this js.Value, args []js.Value) (errors any) {
 		templates[i].Source = o.Get("source").String()
 	}
 
-	schema, err := gqlparser.LoadSchema(&ast.Source{
-		Name:  "schema.graphqls",
-		Input: schemaSrc,
-	})
-	if err != nil {
-		return map[string]any{
-			"code":   "SCHEMA_ERR",
-			"errors": []any{fmt.Sprintf("parsing schema: %v", err)},
+	var schema *ast.Schema
+	var parserSrc []gqt.Source
+	if schemaSrc != "" {
+		var err error
+		schema, err = gqlparser.LoadSchema(&ast.Source{
+			Name:  "schema.graphqls",
+			Input: schemaSrc,
+		})
+		if err != nil {
+			return map[string]any{
+				"code":   "SCHEMA_ERR",
+				"errors": []any{fmt.Sprintf("parsing schema: %v", err)},
+			}
 		}
+		parserSrc = []gqt.Source{{
+			Name:    "schema.graphqls",
+			Content: schemaSrc,
+		}}
 	}
 
 	templateDefinitions := make(map[string]*config.Template, len(templates))
 	templatesEnabled := make([]*config.Template, len(templates))
-	p, err := gqt.NewParser([]gqt.Source{{
-		Name:    "schema.graphqls",
-		Content: schemaSrc,
-	}})
+	p, err := gqt.NewParser(parserSrc)
 	if err != nil {
 		return map[string]any{
 			"code":   "INIT_GQT_PARSER",
