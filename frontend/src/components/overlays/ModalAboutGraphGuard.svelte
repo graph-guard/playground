@@ -111,7 +111,6 @@ function welcomeBgOutTransition(n, o?) {
 
 function welcomeModalOutTransition(node: HTMLElement, o?) {
 	const x = node.offsetTop * 3.5
-	console.log(x)
 	const style = getComputedStyle(node)
 	return customTransition({
 		duration: 1200,
@@ -157,9 +156,9 @@ function closeThis() {
 	.graph-guard-logo
 		height: 100px
 		aspect-ratio: 1/1
-		animation: test 0.25s var(--trans-easing)
+		animation: logoZoom 0.25s var(--trans-easing)
 		transform-origin: bottom
-		@keyframes test
+		@keyframes logoZoom
 			from
 				opacity: 0
 				transform: scale(0.25)
@@ -206,6 +205,10 @@ function closeThis() {
 					--ripple-color: rgb(27, 24, 23)
 					--bg: rgba(27, 24, 23, 0.05)
 					--bg-h: rgba(27, 24, 23, 0.2)
+					@media (prefers-color-scheme: dark)
+						--icon-primary: #fff
+						--bg: rgba(27, 24, 23, 0.4)
+						--bg-h: rgba(27, 24, 23, 0.8)
 				background-color: var(--bg)
 				&:hover
 					background-color: var(--bg-h)
