@@ -110,7 +110,7 @@ function welcomeBgOutTransition(n, o?) {
 }
 
 function welcomeModalOutTransition(node: HTMLElement, o?) {
-	const x = node.offsetTop * 3
+	const x = node.offsetTop * 3.5
 	console.log(x)
 	const style = getComputedStyle(node)
 	return customTransition({
