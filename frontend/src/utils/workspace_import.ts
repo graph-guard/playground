@@ -3,15 +3,13 @@ import {WS_VERSION, TEMPLATE_VERSION, OPERATION_VERSION} from '../stores/playgro
 import {randID} from './misc'
 
 export function importOperationVersion(input: Partial<VersionedEntity> & {[key: string]: any}): GG_Operation {
-	if (
-		input._version === undefined || input._version === null ||
-		input._version < 0 || input._version > OPERATION_VERSION
-	) {
+	let opVer = input._version
+	if (opVer === undefined || opVer === null || opVer < 0 || opVer > OPERATION_VERSION) {
 		console.error('no or invalid operation version provided. this may import data incorrectly.')
-		input._version = OPERATION_VERSION
+		opVer = OPERATION_VERSION
 	}
 	const id = randID()
-	switch (input._version) {
+	switch (opVer) {
 	case 0: {
 		const op = input as GG_ImportOperation
 		return {
@@ -28,15 +26,13 @@ export function importOperationVersion(input: Partial<VersionedEntity> & {[key: 
 }
 
 export function importTemplateVersion(input: Partial<VersionedEntity> & {[key: string]: any}): GG_Template {
-	if (
-		input._version === undefined || input._version === null ||
-		input._version < 0 || input._version > TEMPLATE_VERSION
-	) {
+	let tplVer = input._version
+	if (tplVer === undefined || tplVer === null || tplVer < 0 || tplVer > TEMPLATE_VERSION) {
 		console.error('no or invalid template version provided. this may import data incorrectly.')
-		input._version = TEMPLATE_VERSION
+		tplVer = TEMPLATE_VERSION
 	}
 	const id = randID()
-	switch (input._version) {
+	switch (tplVer) {
 	case 0: {
 		const tpl = input as GG_ImportTemplate
 		return {
@@ -52,17 +48,26 @@ export function importTemplateVersion(input: Partial<VersionedEntity> & {[key: s
 }
 
 export function importWorkspaceVersion(input: Partial<VersionedEntity> & {[key: string]: any}): GG_Workspace {
-	if (
-		input._version === undefined || input._version === null ||
-		input._version < 0 || input._version > WS_VERSION
-	) {
+	let wsVer = input._version
+	if (wsVer === undefined || wsVer === null || wsVer < 0 || wsVer > WS_VERSION) {
 		console.error('no or invalid workspace version provided. this may import data incorrectly.')
-		input._version = WS_VERSION
+		wsVer = WS_VERSION
 	}
 	const id = randID()
-	switch (input._version) {
+	switch (wsVer) {
 	case 0: {
 		const ws = input as GG_ImportWorkspace
+
+		const templates = (ws.templates || []).map(importTemplateVersion)
+		if (templates.length < 1) {
+			templates.push(importTemplateVersion({}))
+		}
+
+		const operations = (ws.operations || []).map(importOperationVersion)
+		if (operations.length < 1) {
+			operations.push(importOperationVersion({}))
+		}
+
 		return {
 			_version: ws._version ?? WS_VERSION,
 			id,
@@ -70,8 +75,8 @@ export function importWorkspaceVersion(input: Partial<VersionedEntity> & {[key: 
 			schema: ws.schema ?? '',
 			isSchemaless: ws.isSchemaless ?? false,
 			creation: Date.now(),
-			templates: (input.templates || []).map(importTemplateVersion),
-			operations: (input.operations || []).map(importOperationVersion),
+			templates,
+			operations,
 		}
 	}
 	default:

@@ -248,6 +248,11 @@ class Playground implements Readable<t_$> {
 	}
 
 	constructor() {
+		this._initWorkspace()
+	}
+
+	private async _initWorkspace(): Promise<void> {
+		let initExampleWorkspace = false
 		const locStrore = this._scanLocalStore()
 		this.#store.update(($)=> {
 			if (locStrore) {
@@ -260,18 +265,30 @@ class Playground implements Readable<t_$> {
 				}
 			}
 
-			if (Object.keys($.workspaces).length < 1) {
-				const ws = this._newWorkspaceObj('')
-				$.workspaces[ws.id] = ws
-			}
+			initExampleWorkspace = Object.keys($.workspaces).length < 1
 
 			// if ($._version !== STORE_VERSION) {/* migrate */}
 			return $
 		})
+
+		if (initExampleWorkspace) {
+			await this.addExampleWorkspaceStarwars()
+		}
+
 		this._engine = window['engine'] as EngineAPI
 		this._engine.__run()
 		storeIsInited('playground')
 		this._engine.__init.then(()=> storeIsInited('engine'))
+	}
+
+	public async addExampleWorkspaceStarwars(): Promise<string> {
+		const exampleWS = await import('../utils/default_workspace.json')
+		const ws = importWorkspaceVersion(exampleWS)
+		this._update(($)=> {
+			$.workspaces[ws.id] = ws
+			return $
+		})
+		return ws.id
 	}
 
 	public derivedTemplatesIDMapByWS =(wsID: string)=> (

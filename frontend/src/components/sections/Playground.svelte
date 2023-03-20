@@ -98,13 +98,15 @@ onMount(()=> {
 		</div>
 
 		<div id='GraphGuardLogo' class='flex-base-size flex'>
-			<button on:click={()=> openOverlay({name: 'about'})}
-			use:rippleEffect
-			class='btn accent flex flex-center'
-			class:welcome-closed={$playLogoAnim}
-			on:transitionend={()=> playLogoAnim.set(false)}>
-				<img src='app-icon/ico.svg' alt='GraphGuard'/>
-			</button>
+			<button
+				on:click={()=> openOverlay({name: 'about'})}
+				use:rippleEffect
+				style:background='url(app-icon/ico.svg) center no-repeat'
+				style:background-size='60%'
+				class='btn accent flex flex-center'
+				class:welcome-closed={$playLogoAnim}
+				on:transitionend={()=> playLogoAnim.set(false)}
+			/>
 		</div>
 
 		<div class='right-part flex'>
@@ -154,6 +156,7 @@ onMount(()=> {
 		#GraphGuardLogo
 			height: 100%
 			padding: 0.5rem
+			aspect-ratio: 1/1
 			button
 				padding: 0.5rem
 				height: 100%
@@ -190,9 +193,6 @@ onMount(()=> {
 								transform: translateX(-100%)
 							100%
 								transform: translateX(100%)
-			img
-				height: 100%
-				aspect-ratio: 1/1
 		.tabs
 			position: relative
 			padding: 0.5rem 0.5rem 0 0.5rem

@@ -208,13 +208,12 @@ function _checkIsFocusAllowed(event: FocusEvent & {currentTarget: EventTarget & 
 
 
 <script lang='ts'>
-import {onMount} from 'svelte'
 import {welcomeModalLocStrKey} from './components/overlays/ModalAboutGraphGuard.svelte'
 
 import CritErrModal from './components/overlays/ModalCritErr.svelte'
 import Overlays, { openOverlay } from './components/sections/Overlays.svelte'
 import Toasts from './components/sections/Toasts.svelte'
-import Loader from './components/sections/Loader.svelte'
+import Loader, {load} from './components/sections/Loader.svelte'
 import Menus from './components/sections/Menus.svelte'
 import Playground from './components/sections/Playground.svelte'
 
@@ -225,16 +224,24 @@ import {storesInit} from './stores/stores_init'
 import './stores/i18n'
 import './stores/playground'
 
-let storesAreInited = false
-storesInit.then(()=> {storesAreInited = true})
+let appReadyToInteract = false
+let resolveAppInitial: ()=> void;
 
-onMount(()=> {
-	if ('localStorage' in window) {
-		const lastTimeOpened = localStorage.getItem(welcomeModalLocStrKey)
-		if (!lastTimeOpened) {
-			setTimeout(()=> openOverlay({name: 'about', props: {welcome: true}}), 200)
+load((resolve)=> {
+	resolveAppInitial =()=> {
+		appReadyToInteract = true
+		resolve()
+		if ('localStorage' in window) {
+			const lastTimeOpened = localStorage.getItem(welcomeModalLocStrKey)
+			if (!lastTimeOpened) {
+				setTimeout(()=> openOverlay({name: 'about', props: {welcome: true}}), 200)
+			}
 		}
 	}
+}, {timeout: 0, escapable: false})
+
+storesInit.then(()=> {
+	resolveAppInitial()
 })
 </script>
 
@@ -258,7 +265,7 @@ onMount(()=> {
 	}}
 />
 
-{#if storesAreInited}<Playground/>{/if}
+{#if appReadyToInteract}<Playground/>{/if}
 <Overlays/>
 <Menus/>
 <Toasts/>

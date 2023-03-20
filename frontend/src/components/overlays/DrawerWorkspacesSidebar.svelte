@@ -9,6 +9,7 @@ import RadioBox from '../snippets/RadioBox.svelte'
 import {openOverlay} from '../sections/Overlays.svelte'
 import {trimStr} from '../../utils/misc'
 import InputAutoWidth from '../snippets/InputAutoWidth.svelte'
+import {load} from '../sections/Loader.svelte'
 const dispatch = createEventDispatcher<{close: void, mounted: HTMLElement}>()
 
 function closeThis() {
@@ -66,6 +67,14 @@ function newWs() {
 	closeThis()
 }
 
+function newExampleWs() {
+	load(async (resolve)=> {
+		uiState.selectWorkspace(await workspace.addExampleWorkspaceStarwars())
+		closeThis()
+		resolve()
+	})
+}
+
 function onWsNameInput(id: string, name: string) {
 	workspace.updateWorkspace(id, {name})
 }
@@ -111,10 +120,17 @@ export type Props = void;
 	<div class='background' on:click={()=> closeThis()} transition:fade/>
 	<div class='drawer flex flex-col' transition:drawerTransition={{direction: 'left'}}>
 		<div class='workspaces-list grid gap-05 grid-top flex-base-size-var'>
-			<button on:click={newWs} use:rippleEffect class='btn'>
-				<Icon name='plus'/>
-				<span>New workspace</span>
-			</button>
+			<div class='grid grid-2 gap-05'>
+				<button on:click={newWs} use:rippleEffect class='btn'>
+					<Icon name='plus'/>
+					<span>New workspace</span>
+				</button>
+
+				<button on:click={newExampleWs} use:rippleEffect class='btn'>
+					<Icon name='plus'/>
+					<span>Starwars example</span>
+				</button>
+			</div>
 
 			{#each timeSortedWorkspaces as {id, name, creation}, idx (id)}
 				<div class='workspace flex flex-center-y nowrap gap-05'
