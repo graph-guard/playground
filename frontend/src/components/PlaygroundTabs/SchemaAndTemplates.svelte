@@ -274,10 +274,10 @@ onDestroy(()=> {
 			height: 100%
 			font-size: 1.25rem
 			color: rgb(var(--font-heading-clr))
-			background-color: rgba(var(--font-base-clr), 0.15)
+			background-color: rgba(var(--font-heading-clr), 0.1)
 			@media (prefers-color-scheme: dark)
 				background-color: rgba(var(--page-bg), 0.5)
 				color: rgb(var(--font-base-clr))
 		&.schema-less .cm-editor-wrapper
-			opacity: 0.5
+			opacity: 0.1
 </style>

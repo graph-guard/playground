@@ -32,10 +32,10 @@ const defaultDynamicTheme = EditorView.theme({
 	'&.cm-focused .cm-cursor': {
 		borderLeftColor: 'var(--code-mirror-cursor-clr)',
 	},
-	'&.cm-focused .cm-selectionBackground, ::selection': {
+	'.cm-selectionBackground, &.cm-focused .cm-selectionBackground, ::selection': {
 		backgroundColor: 'var(--code-mirror-selection-bg)',
 	},
-	'&.cm-focused .cm-matchingBracket': {
+	'.cm-matchingBracket, &.cm-focused .cm-matchingBracket': {
 		backgroundColor: 'var(--code-mirror-matching-braket-bg)',
 		outline: 'var(--code-mirror-matching-braket-outline)',
 		color: 'var(--code-mirror-matching-braket-font-clr)',
