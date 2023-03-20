@@ -18,12 +18,12 @@
 		</div>
 
 		<div class='footer flex flex-center-y'>
-			<button on:click={reloadApp} use:rippleEffect class='btn flex-self-left'>
+			<button on:click={reloadApp} use:rippleEffect class='btn flex-self-right'>
 				{$_('app_crit_error.reload_app')}
 			</button>
-			<button on:click={recoverEngine} use:rippleEffect class='btn accent flex-self-right'>
+			<!-- <button on:click={recoverEngine} use:rippleEffect class='btn accent flex-self-right'>
 				{$_('app_crit_error.recover')}
-			</button>
+			</button> -->
 		</div>
 
 		<div class='hard-reset grid gap-1'>
@@ -70,10 +70,10 @@ function reloadApp() {
 	window.location.reload()
 }
 
-function recoverEngine() {
-	window['engine'].RUN()
-	renderModal = false
-}
+// function recoverEngine() {
+// 	window['engine'].__run()
+// 	renderModal = false
+// }
 
 function hardReset() {
 	if ('localStorage' in window) {
