@@ -8,13 +8,13 @@ const UI_STATE_VERSION = 0
 
 export enum PlaygroundTab {
 	SchemaAndTemplates = 'SchemaAndTemplates',
-	Queries = 'Queries',
+	Operations = 'Operations',
 }
 
 type GG_WorkspaceUIState = {
 	selectedTemplateIndex: number
-	selectedQueryIndex: number
-	selectedQueryName: {[queryID: string]: string}
+	selectedOperationIndex: number
+	selectedOperationName: {[opID: string]: string}
 }
 
 type t_$ = {
@@ -105,8 +105,8 @@ class UIState implements Readable<t_$> {
 					hasChanges = true
 					$.workspaces[$.selectedWorkspaceID] = {
 						selectedTemplateIndex: 0,
-						selectedQueryIndex: 0,
-						selectedQueryName: {},
+						selectedOperationIndex: 0,
+						selectedOperationName: {},
 					}
 				}
 
@@ -127,8 +127,8 @@ class UIState implements Readable<t_$> {
 			if (!(wsID in $.workspaces)) {
 				$.workspaces[wsID] = {
 					selectedTemplateIndex: 0,
-					selectedQueryIndex: 0,
-					selectedQueryName: {},
+					selectedOperationIndex: 0,
+					selectedOperationName: {},
 				}
 			}
 			return $
@@ -156,25 +156,25 @@ class UIState implements Readable<t_$> {
 		if (err !== null) {throw err}
 	}
 
-	public selectQuery(idx: number): void {
+	public selectOperation(idx: number): void {
 		let err: Error|null = null
 		this._update(($)=> {
 			if ($.selectedWorkspaceID === null) {
 				err = new Error('workspace not selected')
 			} else {
-				$.workspaces[$.selectedWorkspaceID].selectedQueryIndex = idx
+				$.workspaces[$.selectedWorkspaceID].selectedOperationIndex = idx
 			}
 			return $
 		})
 		if (err !== null) {throw err}
 	}
 
-	public selectQueryName(wsID: string, queryID: string, name: string|null) {
+	public selectOperationName(wsID: string, opID: string, name: string|null) {
 		this._update(($)=> {
 			if (name === null) {
-				delete $.workspaces[wsID].selectedQueryName[queryID]
+				delete $.workspaces[wsID].selectedOperationName[opID]
 			} else {
-				$.workspaces[wsID].selectedQueryName[queryID] = name
+				$.workspaces[wsID].selectedOperationName[opID] = name
 			}
 			return $
 		})

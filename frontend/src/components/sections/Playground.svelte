@@ -2,7 +2,7 @@
 import {$ as uiState, PlaygroundTab} from '../../stores/ui_state'
 import {$ as workspace} from '../../stores/playground'
 import SchemaAndTemplates from '../PlaygroundTabs/SchemaAndTemplates.svelte'
-import Queries from '../PlaygroundTabs/Queries.svelte'
+import Operations from '../PlaygroundTabs/Operations.svelte'
 import rippleEffect from '../../utils/ripple'
 import Icon from '../snippets/Icon.svelte'
 import {openOverlay} from './Overlays.svelte'
@@ -27,9 +27,9 @@ const tabMeta = {
 		title: 'Schema & Templates',
 		component: SchemaAndTemplates,
 	},
-	[PlaygroundTab.Queries]: {
-		title: 'Queries',
-		component: Queries,
+	[PlaygroundTab.Operations]: {
+		title: 'Operations',
+		component: Operations,
 	},
 }
 
@@ -86,12 +86,12 @@ onMount(()=> {
 				</button>
 
 				<button
-				bind:this={tabEls[PlaygroundTab.Queries]}
-				on:click={()=> uiState.setTab(PlaygroundTab.Queries)}
+				bind:this={tabEls[PlaygroundTab.Operations]}
+				on:click={()=> uiState.setTab(PlaygroundTab.Operations)}
 				use:rippleEffect
-				class:active={PlaygroundTab.Queries === $uiState.selectedTab}
+				class:active={PlaygroundTab.Operations === $uiState.selectedTab}
 				class='btn flex flex-center'>
-					{tabMeta[PlaygroundTab.Queries].title}
+					{tabMeta[PlaygroundTab.Operations].title}
 				</button>
 				<div class='current-tab-slider' style:width='{tabSlider.width}px' style:left='{tabSlider.offset}px'/>
 			</div>

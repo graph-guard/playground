@@ -111,7 +111,7 @@ func MatchAll(
 		return nil
 	}
 
-	query := args[0].String()
+	operation := args[0].String()
 	operationName := args[1].String()
 	variablesJSON := args[2].String()
 	fmt.Println(variablesJSON)
@@ -128,7 +128,7 @@ func MatchAll(
 	result := map[string]any{}
 	matchedTemplateIDs := []any{}
 	engine.Match(
-		[]byte(query), oprName, varsJSON,
+		[]byte(operation), oprName, varsJSON,
 		func(operation, selectionSet []gqlparse.Token) (stop bool) {
 			return false
 		},

@@ -8,7 +8,7 @@ import {importWorkspaceVersion} from '../utils/workspace_import'
 
 export const WS_VERSION = 0
 export const TEMPLATE_VERSION = 0
-export const QUERY_VERSION = 0
+export const OPERATION_VERSION = 0
 export const STORE_VERSION = 0
 
 // VersionedEntity such entities can be migrated if needed
@@ -39,7 +39,7 @@ type EngineAPI_MatchAllResult = {
 }
 
 enum OperationType {
-	Query = 'Query',
+	Operation = 'Operation',
 	Mutation = 'Mutation',
 	Subscription = 'Subscription',
 }
@@ -57,19 +57,19 @@ interface EngineAPI {
 	__inited: ()=> void // resolver of _init, which is called from Go
 	__init: Promise<void> // resolved by the engine in Go
 	init: <T extends EngineAPI_InitErrorCode>(schemaSrc: string, templates: Array<EngineAPI_Template>)=> EngineAPI_InitError<T>|null
-	matchAll: (query: string, operationName: string, variablesJSON: string)=> EngineAPI_MatchAllResult
-	parseOperation: (query: string)=> EngineAPI_ParsedOperation
+	matchAll: (source: string, operationName: string, variablesJSON: string)=> EngineAPI_MatchAllResult
+	parseOperation: (source: string)=> EngineAPI_ParsedOperation
 }
 
-export type GG_QueryResults = {
+export type GG_OperationResults = {
 	matched: Array<string>
 	error: string|null
 }
 
-export type GG_Query = VersionedEntity & {
+export type GG_Operation = VersionedEntity & {
 	id: string
 	name: string
-	query: string
+	source: string
 	variables: string
 }
 
@@ -85,11 +85,11 @@ export type GG_Workspace = VersionedEntity & {
 	schema: string
 	creation: number
 	templates: Array<GG_Template>
-	queries: Array<GG_Query>
+	operations: Array<GG_Operation>
 	isSchemaless: boolean
 }
 
-export type GG_ImportQuery = Partial<VersionedEntity & {name: string, query: string, variables: string}>
+export type GG_ImportOperation = Partial<VersionedEntity & {name: string, source: string, variables: string}>
 
 export type GG_ImportTemplate = Partial<VersionedEntity & {name: string, source: string}>
 
@@ -97,8 +97,9 @@ export type GG_ImportWorkspace = Partial<VersionedEntity & {
 	name: string
 	schema: string
 	creation: number
-	templates: Array<GG_ImportQuery>
-	queries: Array<GG_ImportTemplate>
+	isSchemaless: boolean
+	templates: Array<GG_ImportOperation>
+	operations: Array<GG_ImportTemplate>
 }>
 
 type t_$ = VersionedEntity & {
@@ -109,12 +110,12 @@ type t_$errors = {[wsID: string]: {
 	gqt: null|Array<string>
 	schema: null|Array<string>
 	templates: {[tplID: string]: Array<string>}
-	queries: {[queryID: string]: Array<string>}
+	operations: {[opID: string]: Array<string>}
 }}
 
-type t_$parsedOperations = {[wsID: string]: {[queryID: string]: Array<EngineAPI_Operation>}}
+type t_$parsedOperations = {[wsID: string]: {[opID: string]: Array<EngineAPI_Operation>}}
 
-type t_$queryResults = {[wsID: string]: {[queryID: string]: GG_QueryResults}}
+type t_$operationResults = {[wsID: string]: {[opID: string]: GG_OperationResults}}
 
 class Playground implements Readable<t_$> {
 	#locStrID = newLocalStorageKey('workspaces')
@@ -123,13 +124,13 @@ class Playground implements Readable<t_$> {
 
 	#store = writable<t_$>({_version: STORE_VERSION, workspaces: {}})
 	#errors = writable<t_$errors>({})
-	#queryResults = writable<t_$queryResults>({})
+	#operationResults = writable<t_$operationResults>({})
 	#engineInited = writable(false)
 	#parsedOperations = writable<t_$parsedOperations>({})
 
 	public readonly subscribe = this.#store.subscribe
 	public errors = derived(this.#errors, ($)=> $)
-	public results = derived(this.#queryResults, ($)=> $)
+	public results = derived(this.#operationResults, ($)=> $)
 	public isEngineInited = derived(this.#engineInited, ($)=> $)
 	public parsedOperations = derived(this.#parsedOperations, ($)=> $)
 
@@ -186,23 +187,23 @@ class Playground implements Readable<t_$> {
 		return tpl
 	}
 
-	private _validateQuery(possibleQuery: GG_Query): GG_Query|null {
-		const query = this._newQueryObj()
-		if (typeof possibleQuery.id === 'string') {
-			query.id = possibleQuery.id
+	private _validateOperation(possibleOp: GG_Operation): GG_Operation|null {
+		const op = this._newOperationObj()
+		if (typeof possibleOp.id === 'string') {
+			op.id = possibleOp.id
 		}
-		if (typeof possibleQuery.name === 'string') {
-			query.name = possibleQuery.name
+		if (typeof possibleOp.name === 'string') {
+			op.name = possibleOp.name
 		}
-		if (typeof possibleQuery.query === 'string') {
-			query.query = possibleQuery.query
+		if (typeof possibleOp.source === 'string') {
+			op.source = possibleOp.source
 		}
-		if (typeof possibleQuery.variables === 'string') {
-			query.variables = possibleQuery.variables
+		if (typeof possibleOp.variables === 'string') {
+			op.variables = possibleOp.variables
 		}
 
-		// if (query._version !== QUERY_VERSION) {/* migrate */}
-		return query
+		// if (op._version !== OPERATION_VERSION) {/* migrate */}
+		return op
 	}
 
 	private _validateWorkspace(possibleWs: GG_Workspace): GG_Workspace|null {
@@ -224,13 +225,11 @@ class Playground implements Readable<t_$> {
 			ws.creation = possibleWs.creation
 		}
 
-		if (Array.isArray(possibleWs.queries) && possibleWs.queries.length > 0) {
-			ws.queries = []
-			possibleWs.queries.forEach((possibleQuery)=> {
-				const query = this._validateQuery(possibleQuery)
-				if (query !== null) {
-					ws.queries.push(query)
-				}
+		if (Array.isArray(possibleWs.operations) && possibleWs.operations.length > 0) {
+			ws.operations = []
+			possibleWs.operations.forEach((possibleOp)=> {
+				const op = this._validateOperation(possibleOp)
+				if (op !== null) {ws.operations.push(op)}
 			})
 		}
 
@@ -311,12 +310,12 @@ class Playground implements Readable<t_$> {
 					})
 				) : undefined
 			),
-			queries: (
-				$.workspaces[wsID].queries.length ? $.workspaces[wsID].queries.map(
-					({_version, name, query, variables})=> ({
+			operations: (
+				$.workspaces[wsID].operations.length ? $.workspaces[wsID].operations.map(
+					({_version, name, source, variables})=> ({
 						_version,
 						name: name || undefined,
-						query: query || undefined,
+						source: source || undefined,
 						variables: variables || undefined,
 					})
 				) : undefined
@@ -355,12 +354,12 @@ class Playground implements Readable<t_$> {
 		}
 	}
 
-	private _newQueryObj(name?: string): GG_Query {
+	private _newOperationObj(name?: string): GG_Operation {
 		return {
-			_version: QUERY_VERSION,
+			_version: OPERATION_VERSION,
 			id: randID(),
 			name: name ?? '',
-			query: '',
+			source: '',
 			variables: '',
 		}
 	}
@@ -373,7 +372,7 @@ class Playground implements Readable<t_$> {
 			schema: '',
 			creation: Date.now(),
 			templates: [this._newTemplateObj()],
-			queries: [this._newQueryObj()],
+			operations: [this._newOperationObj()],
 			isSchemaless: false,
 		}
 	}
@@ -402,7 +401,7 @@ class Playground implements Readable<t_$> {
 				$.workspaces[wsID].schema = ''
 				$.workspaces[wsID].creation = Date.now()
 				$.workspaces[wsID].templates = [this._newTemplateObj()]
-				$.workspaces[wsID].queries = [this._newQueryObj()]
+				$.workspaces[wsID].operations = [this._newOperationObj()]
 			} else {
 				delete $.workspaces[wsID]
 			}
@@ -410,7 +409,7 @@ class Playground implements Readable<t_$> {
 				delete $[wsID]
 				return $
 			})
-			this.#queryResults.update(($)=> {
+			this.#operationResults.update(($)=> {
 				delete $[wsID]
 				return $
 			})
@@ -535,68 +534,68 @@ class Playground implements Readable<t_$> {
 		this._debouncedEngineInit(wsID)
 	}
 
-	/* :: QUERY ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+	/* :: OPERATION ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
 
-	public newQuery(wsID: string): string {
-		let queryID = ''
+	public newOperation(wsID: string): string {
+		let opID = ''
 		this._update(($)=> {
-			const newQuery = this._newQueryObj()
-			$.workspaces[wsID].queries.push(newQuery)
-			queryID = newQuery.id
+			const newOp = this._newOperationObj()
+			$.workspaces[wsID].operations.push(newOp)
+			opID = newOp.id
 			return $
 		})
-		return queryID
+		return opID
 	}
 
-	public deleteQuery(wsID: string, idx: number): void {
+	public deleteOperation(wsID: string, idx: number): void {
 		let err: Error|null = null
-		let queryID = ''
+		let opID = ''
 		this._update(($)=> {
-			if (idx < 0 || idx >= $.workspaces[wsID].queries.length) {
-				err = new Error(`no query by index "${idx}" existing`)
+			if (idx < 0 || idx >= $.workspaces[wsID].operations.length) {
+				err = new Error(`no operation by index "${idx}" existing`)
 				return $
 			}
 
-			queryID = $.workspaces[wsID].queries[idx].id
-			if ($.workspaces[wsID].queries.length < 2) {
-				$.workspaces[wsID].queries[0].name = ''
-				$.workspaces[wsID].queries[0].query = ''
-				$.workspaces[wsID].queries[0].variables = ''
+			opID = $.workspaces[wsID].operations[idx].id
+			if ($.workspaces[wsID].operations.length < 2) {
+				$.workspaces[wsID].operations[0].name = ''
+				$.workspaces[wsID].operations[0].source = ''
+				$.workspaces[wsID].operations[0].variables = ''
 			} else {
-				$.workspaces[wsID].queries.splice(idx, 1)
+				$.workspaces[wsID].operations.splice(idx, 1)
 			}
 			return $
 		})
 		if (err !== null) {throw err}
 		this.#errors.update(($)=> {
-			delete $[wsID][queryID]
+			delete $[wsID][opID]
 			return $
 		})
-		this.#queryResults.update(($)=> {
-			delete $[wsID][queryID]
+		this.#operationResults.update(($)=> {
+			delete $[wsID][opID]
 			return $
 		})
 		this.#parsedOperations.update(($)=> {
-			delete $[wsID][queryID]
+			delete $[wsID][opID]
 			return $
 		})
 	}
 
-	public duplicateQuery(wsID: string, idx: number): void {
+	public duplicateOperation(wsID: string, idx: number): void {
 		let err: Error|null = null
 		this._update(($)=> {
-			if (idx < 0 || idx >= $.workspaces[wsID].queries.length) {
-				err = new Error(`no query by index "${idx}" existing`)
+			if (idx < 0 || idx >= $.workspaces[wsID].operations.length) {
+				err = new Error(`no operation by index "${idx}" existing`)
 				return $
 			}
 
-			const query = $.workspaces[wsID].queries[idx]
-			$.workspaces[wsID].queries.splice(idx+1, 0, {
-				_version: query._version,
+			const op = $.workspaces[wsID].operations[idx]
+			$.workspaces[wsID].operations.splice(idx+1, 0, {
+				_version: op._version,
 				id: randID(),
-				name: query.name ? query.name + ' - copy' : '',
-				query: query.query,
-				variables: query.variables,
+				name: op.name ? op.name + ' - copy' : '',
+				source: op.source,
+				variables: op.variables,
 			})
 			return $
 		})
@@ -604,43 +603,43 @@ class Playground implements Readable<t_$> {
 		this.parseOperation(wsID, idx)
 	}
 
-	public updateQuery(
+	public updateOperation(
 		wsID: string,
 		idx: number,
-		{name, query, variables}: Partial<Exclude<GG_Query, 'id'>>,
+		{name, source, variables}: Partial<Exclude<GG_Operation, 'id'>>,
 	): void {
-		let shouldParseQuery = false
+		let shouldParseOperation = false
 		let err: Error|null = null
-		let queryID = ''
+		let opID = ''
 		this._update(($)=> {
 			if (wsID === null) {
 				err = new Error('no workspace selected')
 				return $
 			}
-			if (idx < 0 || idx >= $.workspaces[wsID].queries.length) {
-				err = new Error(`no query by index "${idx}" existing`)
+			if (idx < 0 || idx >= $.workspaces[wsID].operations.length) {
+				err = new Error(`no operation by index "${idx}" existing`)
 				return $
 			}
 
-			queryID = $.workspaces[wsID].queries[idx].id
+			opID = $.workspaces[wsID].operations[idx].id
 			if (typeof name === 'string') {
-				$.workspaces[wsID].queries[idx].name = name
+				$.workspaces[wsID].operations[idx].name = name
 			}
-			if (typeof query === 'string') {
-				shouldParseQuery = true
-				$.workspaces[wsID].queries[idx].query = query
+			if (typeof source === 'string') {
+				shouldParseOperation = true
+				$.workspaces[wsID].operations[idx].source = source
 			}
 			if (typeof variables === 'string') {
-				$.workspaces[wsID].queries[idx].variables = variables
+				$.workspaces[wsID].operations[idx].variables = variables
 			}
 			return $
 		})
 		if (err !== null) {throw err}
-		this.#queryResults.update(($)=> {
-			delete $[wsID][queryID]
+		this.#operationResults.update(($)=> {
+			delete $[wsID][opID]
 			return $
 		})
-		if (shouldParseQuery) {this._debouncedParseOperation(wsID, idx)}
+		if (shouldParseOperation) {this._debouncedParseOperation(wsID, idx)}
 	}
 
 	/* :: ENGINE :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -652,7 +651,7 @@ class Playground implements Readable<t_$> {
 		this.#engineInited.set(false)
 		const schemaSource = $ws.workspaces[wsID].isSchemaless ? '' : $ws.workspaces[wsID].schema
 		const err = this._engine.init<any>(schemaSource, $ws.workspaces[wsID].templates)
-		this.#queryResults.update(($)=> {
+		this.#operationResults.update(($)=> {
 			$[wsID] = {}
 			return $
 		})
@@ -663,13 +662,13 @@ class Playground implements Readable<t_$> {
 			}
 			switch (err.code) {
 			case EngineAPI_InitErrorCode.INIT_GQT_PARSER:
-				$[wsID] = {gqt: err.errors, schema: null, templates: {}, queries: {}}
+				$[wsID] = {gqt: err.errors, schema: null, templates: {}, operations: {}}
 				break
 			case EngineAPI_InitErrorCode.SCHEMA_ERR:
-				$[wsID] = {schema: err.errors, gqt: null, templates: {}, queries: {}}
+				$[wsID] = {schema: err.errors, gqt: null, templates: {}, operations: {}}
 				break
 			case EngineAPI_InitErrorCode.TEMPLATE_ERR:
-				$[wsID] = {templates: err.errors, gqt: null, schema: null, queries: {}}
+				$[wsID] = {templates: err.errors, gqt: null, schema: null, operations: {}}
 				break
 			}
 			return $
@@ -679,11 +678,11 @@ class Playground implements Readable<t_$> {
 		return err
 	}
 
-	private _engineMatchAll(query: string, operationName: string, variablesJSON: string): EngineAPI_MatchAllResult {
-		return this._engine.matchAll(query, operationName, variablesJSON)
+	private _engineMatchAll(source: string, operationName: string, variablesJSON: string): EngineAPI_MatchAllResult {
+		return this._engine.matchAll(source, operationName, variablesJSON)
 	}
 
-	public executeQuery(wsID: string, queryID: string, operationName?: string) {
+	public executeOperation(wsID: string, opID: string, operationName?: string) {
 		this._panicWhenEngineIsIniting()
 
 		const $ = this.$()
@@ -692,19 +691,19 @@ class Playground implements Readable<t_$> {
 		}
 
 		const ws = $.workspaces[wsID]
-		const queryIdx = ws.queries.findIndex(({id})=> id === queryID)
-		if (queryIdx === -1) {
-			throw new Error(`query by id "${queryID}" not existing`)
+		const opIdx = ws.operations.findIndex(({id})=> id === opID)
+		if (opIdx === -1) {
+			throw new Error(`operation by id "${opID}" not existing`)
 		}
 	
 		const result = this._engineMatchAll(
-			ws.queries[queryIdx].query,
+			ws.operations[opIdx].source,
 			typeof operationName === 'string' ? operationName : '',
-			ws.queries[queryIdx].variables,
+			ws.operations[opIdx].variables,
 		)
 
-		this.#queryResults.update(($)=> {
-			$[wsID][ws.queries[queryIdx].id] = {
+		this.#operationResults.update(($)=> {
+			$[wsID][ws.operations[opIdx].id] = {
 				matched: result.matched || [],
 				error: result?.error || null,
 			}
@@ -713,19 +712,19 @@ class Playground implements Readable<t_$> {
 	}
 
 	private _debouncedParseOperation = debounce(
-		(wsID: string, queryIdx: number)=> this.parseOperation(wsID, queryIdx),
+		(wsID: string, opIdx: number)=> this.parseOperation(wsID, opIdx),
 		300,
 	)
 
 	public parseAllOperations(wsID: string) {
 		const $ws = this.$().workspaces[wsID]
-		$ws.queries.forEach((_, idx)=> this.parseOperation(wsID, idx))
+		$ws.operations.forEach((_, idx)=> this.parseOperation(wsID, idx))
 	}
 
-	public parseOperation(wsID: string, queryIdx: number) {
+	public parseOperation(wsID: string, opIdx: number) {
 		const $ws = this.$().workspaces[wsID]
-		const query = $ws.queries[queryIdx]
-		const parsed = this._engine.parseOperation(query.query)
+		const op = $ws.operations[opIdx]
+		const parsed = this._engine.parseOperation(op.source)
 		if (typeof parsed.code === 'string') {
 			this.#errors.update(($)=> {
 				if (!(wsID in $)) {
@@ -733,10 +732,10 @@ class Playground implements Readable<t_$> {
 						gqt: null,
 						schema: null,
 						templates: {},
-						queries: {[query.id]: [parsed.errors as string]},
+						operations: {[op.id]: [parsed.errors as string]},
 					}
 				} else {
-					$[wsID].queries[query.id] = [parsed.errors as string]
+					$[wsID].operations[op.id] = [parsed.errors as string]
 				}
 				return $
 			})
@@ -744,13 +743,13 @@ class Playground implements Readable<t_$> {
 		else if (parsed.operations) {
 			const ops = parsed.operations as Array<EngineAPI_Operation>
 			this.#errors.update(($)=> {
-				if (wsID in $) {delete $[wsID].queries[query.id]}
+				if (wsID in $) {delete $[wsID].operations[op.id]}
 				return $
 			})
 			this.#parsedOperations.update(($)=> {
 				if (!(wsID in $)) {$[wsID] = {}}
-				if (ops.length < 1) {delete $[wsID][query.id]}
-				else {$[wsID][query.id] = ops}
+				if (ops.length < 1) {delete $[wsID][op.id]}
+				else {$[wsID][op.id] = ops}
 				return $
 			})
 		}

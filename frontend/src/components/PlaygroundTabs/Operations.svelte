@@ -18,9 +18,9 @@ import type {Props as ListMenuProps} from '../menus/List.svelte'
 $:wsID = $uiState.selectedWorkspaceID
 $:wsUIState = $uiState.workspaces[wsID]
 $:WS = $workspace.workspaces[wsID]
-$:selQueryIdx = wsUIState.selectedQueryIndex
-$:selQuery = WS.queries[selQueryIdx]
-$:selQueryName = selQuery.id in wsUIState.selectedQueryName ? wsUIState.selectedQueryName[selQuery.id] : null
+$:selOPIdx = wsUIState.selectedOperationIndex
+$:selOP = WS.operations[selOPIdx]
+$:selOPName = selOP.id in wsUIState.selectedOperationName ? wsUIState.selectedOperationName[selOP.id] : null
 $:templatesIDMapByWS = workspace.derivedTemplatesIDMapByWS(wsID)
 $:isEngineInited = workspace.isEngineInited
 $:errors = workspace.errors
@@ -28,56 +28,56 @@ $:wsErrors = wsID in $errors ? $errors[wsID] : null
 $:hasAnyErrors = (
 	wsErrors !== null && (
 		wsErrors.gqt !== null || wsErrors.schema !== null ||
-		Object.keys(wsErrors.templates).length > 0 || selQuery.id in wsErrors.queries
+		Object.keys(wsErrors.templates).length > 0 || selOP.id in wsErrors.operations
 	)
 )
-$:parsedQueries = workspace.parsedOperations
-$:parsedQuery = (
-	wsID in $parsedQueries && selQuery.id in $parsedQueries[wsID] ?
-	$parsedQueries[wsID][selQuery.id] : null
+$:parsedOperations = workspace.parsedOperations
+$:parsedOp = (
+	wsID in $parsedOperations && selOP.id in $parsedOperations[wsID] ?
+	$parsedOperations[wsID][selOP.id] : null
 )
-$:queryResults = workspace.results
-$:wsQueryResults = wsID in $queryResults ? $queryResults[wsID] : null
-$:queryExecutionNotAllowed = !$isEngineInited || hasAnyErrors
-$:wsID,selQueryIdx,updateQueryEditor(),updateVariablesEditor(),updateQueryNameList();
-$:parsedQuery,updateQueryNameList();
+$:operationResults = workspace.results
+$:wsOpResults = wsID in $operationResults ? $operationResults[wsID] : null
+$:executionNotAllowed = !$isEngineInited || hasAnyErrors
+$:wsID,selOPIdx,updateOperationEditor(),updateVariablesEditor(),updateOpNameList();
+$:parsedOp,updateOpNameList();
 
-let queryNameList: ListMenuProps = {optionGroups: []}
-function updateQueryNameList() {
-	queryNameList = {optionGroups: [
-		(parsedQuery || []).map(({name})=> ({
+let operationNameMenuList: ListMenuProps = {optionGroups: []}
+function updateOpNameList() {
+	operationNameMenuList = {optionGroups: [
+		(parsedOp || []).map(({name})=> ({
 			label: name,
-			fn(x) {uiState.selectQueryName(wsID, selQuery.id, name); x()},
+			fn(x) {uiState.selectOperationName(wsID, selOP.id, name); x()},
 		}))
 	]}
-	if (parsedQuery !== null) {
-		if (parsedQuery.length < 1) {
-			uiState.selectQueryName(wsID, selQuery.id, null)
+	if (parsedOp !== null) {
+		if (parsedOp.length < 1) {
+			uiState.selectOperationName(wsID, selOP.id, null)
 		} else if (
-			selQueryName === null ||
-			parsedQuery.findIndex(({name})=> selQueryName === name) === -1
+			selOPName === null ||
+			parsedOp.findIndex(({name})=> selOPName === name) === -1
 		) {
-			uiState.selectQueryName(wsID, selQuery.id, parsedQuery[0].name)
+			uiState.selectOperationName(wsID, selOP.id, parsedOp[0].name)
 		}
 	}
 }
 
 function openDeleteConfirmDialog() {
-	let title = `Delete untitled query ${selQueryIdx+1}`
-	if (selQuery.name) {
-		title = `Delete query "${selQuery.name}"`
+	let title = `Delete untitled operation ${selOPIdx+1}`
+	if (selOP.name) {
+		title = `Delete operation "${selOP.name}"`
 	}
 	openOverlay({name: 'dialog', props: {
 		title,
-		message: 'Are you sure you want to delete this query?',
+		message: 'Are you sure you want to delete this operation?',
 		secondary: {
 			action: (x)=> x(),
 			label: 'Cancel',
 		},
 		primary: {
 			action(x) {
-				workspace.deleteQuery(wsID as string, selQueryIdx)
-				uiState.selectQuery(selQueryIdx >= WS.queries.length ? WS.queries.length-1 : selQueryIdx)
+				workspace.deleteOperation(wsID as string, selOPIdx)
+				uiState.selectOperation(selOPIdx >= WS.operations.length ? WS.operations.length-1 : selOPIdx)
 				x()
 			},
 			type: 'red',
@@ -87,22 +87,22 @@ function openDeleteConfirmDialog() {
 }
 
 function onNameInput(name: string) {
-	workspace.updateQuery(wsID, selQueryIdx, {name})
+	workspace.updateOperation(wsID, selOPIdx, {name})
 }
 
-function newQuery() {
-	workspace.newQuery(wsID)
-	uiState.selectQuery(WS.queries.length-1)
+function newOperation() {
+	workspace.newOperation(wsID)
+	uiState.selectOperation(WS.operations.length-1)
 }
 
-function duplicateQuery() {
-	workspace.duplicateQuery(wsID, selQueryIdx)
-	uiState.selectQuery(selQueryIdx+1)
+function duplicateOperation() {
+	workspace.duplicateOperation(wsID, selOPIdx)
+	uiState.selectOperation(selOPIdx+1)
 }
 
-function executeQuery() {
+function executeOperation() {
 	if (hasAnyErrors) {return}
-	workspace.executeQuery(wsID, selQuery.id, selQueryName ?? undefined)
+	workspace.executeOperation(wsID, selOP.id, selOPName ?? undefined)
 }
 
 function openTplRef(tplID: string) {
@@ -112,35 +112,35 @@ function openTplRef(tplID: string) {
 	uiState.setTab(PlaygroundTab.SchemaAndTemplates)
 }
 
-const queryEditor: CMEditor = {state: null, view: null, el: null}
+const operationEditor: CMEditor = {state: null, view: null, el: null}
 const variablesEditor: CMEditor = {state: null, view: null, el: null}
 
-function updateQueryEditor() {
-	queryEditor.view?.destroy()
-	queryEditor.state = newCodeEditor(selQuery.query, {
+function updateOperationEditor() {
+	operationEditor.view?.destroy()
+	operationEditor.state = newCodeEditor(selOP.source, {
 		extensions: [
 			EditorView.editorAttributes.of({class: 'default-theme'}),
 			EditorView.updateListener.of((update)=> {
 				if (update.docChanged) {
-					workspace.updateQuery(wsID, selQueryIdx, {query: update.state.doc.toString()})
+					workspace.updateOperation(wsID, selOPIdx, {source: update.state.doc.toString()})
 				}
 			}),
 		],
 	})
-	queryEditor.view = new EditorView({
-		state: queryEditor.state,
-		parent: queryEditor.el as HTMLElement,
+	operationEditor.view = new EditorView({
+		state: operationEditor.state,
+		parent: operationEditor.el as HTMLElement,
 	})
 }
 
 function updateVariablesEditor() {
 	variablesEditor.view?.destroy()
-	variablesEditor.state = newCodeEditor(selQuery.variables, {
+	variablesEditor.state = newCodeEditor(selOP.variables, {
 		extensions: [
 			EditorView.editorAttributes.of({class: 'default-theme'}),
 			EditorView.updateListener.of((update)=> {
 				if (update.docChanged) {
-					workspace.updateQuery(wsID, selQueryIdx, {variables: update.state.doc.toString()})
+					workspace.updateOperation(wsID, selOPIdx, {variables: update.state.doc.toString()})
 				}
 			}),
 			(new Compartment).of(cmJson()),
@@ -153,45 +153,45 @@ function updateVariablesEditor() {
 }
 
 onMount(()=> {
-	updateQueryEditor()
+	updateOperationEditor()
 	updateVariablesEditor()
 })
 onDestroy(()=> {
-	queryEditor.view?.destroy()
+	operationEditor.view?.destroy()
 	variablesEditor.view?.destroy()
 })
 </script>
 
-<div id='Queries'>
+<div id='Operations'>
 	{#if WS !== null && wsUIState !== null}
 	<Splitpanes theme='customSplitpanes' class='splitpanes-root'>
 		<Pane snapSize={10} maxSize={25} size={20}>
-			<div class='pane-contents queries-list flex flex-col'>
+			<div class='pane-contents operations-list flex flex-col'>
 				<EntryList
-				title='Queries'
-				newEntryLabel='New Query'
-				entries={WS.queries}
-				selectedEntry={selQueryIdx}
-				on:click={({detail})=> uiState.selectQuery(detail)}
-				on:newEntry={newQuery}>
+				title='Operations'
+				newEntryLabel='New Operation'
+				entries={WS.operations}
+				selectedEntry={selOPIdx}
+				on:click={({detail})=> uiState.selectOperation(detail)}
+				on:newEntry={newOperation}>
 					<svelte:fragment let:idx let:entry>
-						<span class='name'>{entry.name || `Query ${idx+1} (untitled)`}</span>
+						<span class='name'>{entry.name || `Operation ${idx+1} (untitled)`}</span>
 					</svelte:fragment>
 				</EntryList>
 			</div>
 		</Pane>
 		<Pane snapSize={15} size={40}>
-			{#if selQuery !== null}
+			{#if selOP !== null}
 				<Splitpanes theme='customSplitpanes' horizontal>
 					<Pane snapSize={15}>
-						<div class='pane-contents query-editor flex flex-col'>
+						<div class='pane-contents operation-editor flex flex-col'>
 							<EntityEditor
-							name={selQuery.name}
-							nameInputLabel='Query {selQueryIdx+1} (untitled)'
+							name={selOP.name}
+							nameInputLabel='Operation {selOPIdx+1} (untitled)'
 							on:delete={openDeleteConfirmDialog}
-							on:duplicate={duplicateQuery}
+							on:duplicate={duplicateOperation}
 							on:nameChange={({detail})=> onNameInput(detail)}>
-								<div class='cm-editor-wrapper' bind:this={queryEditor.el}/>
+								<div class='cm-editor-wrapper' bind:this={operationEditor.el}/>
 							</EntityEditor>
 						</div>
 					</Pane>
@@ -211,37 +211,37 @@ onDestroy(()=> {
 		<Pane snapSize={15} size={40}>
 			<Splitpanes theme='customSplitpanes' horizontal>
 				<Pane snapSize={15}>
-					<div class='pane-contents query-results flex flex-col'>
+					<div class='pane-contents operation-results flex flex-col'>
 						<header class='title-wrapper flex flex-center-y flex-base-size gap-05'>
 							<span class='title'>Results</span>
 
 							<div class='flex flex-center-y flex-self-right gap-05'>
-								{#if selQueryName !== null && (parsedQuery || []).length > 1}
-									<button use:hasMenu={{name: 'list', offset: {y: 'top'}, props: queryNameList}} class='btn'>
-										<span>{selQueryName}</span>
+								{#if selOPName !== null && (parsedOp || []).length > 1}
+									<button use:hasMenu={{name: 'list', offset: {y: 'top'}, props: operationNameMenuList}} class='btn'>
+										<span>{selOPName}</span>
 										<Icon name='chevron'/>
 									</button>
 								{/if}
 
-								<button on:click={executeQuery} use:rippleEffect
-								disabled={queryExecutionNotAllowed}
+								<button on:click={executeOperation} use:rippleEffect
+								disabled={executionNotAllowed}
 								class='btn btn-icon accent'>
 									<Icon name='play'/>
 								</button>
 							</div>
 						</header>
 						<div class='pane-body matched-templates flex-base-size-var'>
-							{#if wsQueryResults === null || !(selQuery.id in wsQueryResults)}
-								<span>Execute query to get results</span>
+							{#if wsOpResults === null || !(selOP.id in wsOpResults)}
+								<span>Execute operation to get results</span>
 							{:else}
-								{#if wsQueryResults[selQuery.id].error !== null}
-									<p class='result-error'>{wsQueryResults[selQuery.id].error}</p>
+								{#if wsOpResults[selOP.id].error !== null}
+									<p class='result-error'>{wsOpResults[selOP.id].error}</p>
 								{:else}
 									<h6 class='matched-header'>
-										{wsQueryResults[selQuery.id].matched.length} matched templates:
+										{wsOpResults[selOP.id].matched.length} matched templates:
 									</h6>
 									<div class='matched-list grid gap-05'>
-										{#each wsQueryResults[selQuery.id].matched as tplID}
+										{#each wsOpResults[selOP.id].matched as tplID}
 											<button
 											on:click={()=> openTplRef(tplID)}
 											use:rippleEffect
@@ -263,15 +263,15 @@ onDestroy(()=> {
 						</div>
 					</div>
 				</Pane>
-				{#if wsErrors !== null && selQuery.id in wsErrors.queries}
+				{#if wsErrors !== null && selOP.id in wsErrors.operations}
 					<Pane minSize={10} size={20}>
-						<div class='pane-contents query-errors flex flex-col nowrap'>
+						<div class='pane-contents operation-errors flex flex-col nowrap'>
 							<header class='title-wrapper flex flex-center-y flex-base-size'>
-								<span class='title'>Query errors</span>
+								<span class='title'>Operation errors</span>
 							</header>
 							<div class='pane-body flex-base-size-var flex flex-col nowrap'>
 								<div class='error-list grid grid-top gap-05 flex-base-size-var'>
-									{#each wsErrors.queries[selQuery.id] as err, idx}
+									{#each wsErrors.operations[selOP.id] as err, idx}
 										<p>{idx+1}. {err}</p>
 									{/each}
 								</div>
@@ -286,16 +286,16 @@ onDestroy(()=> {
 </div>
 
 <style lang='sass'>
-#Queries
+#Operations
 	height: 100%
 	width: 100%
-	.queries-list
+	.operations-list
 		min-width: 10vw
 		.name
 			overflow: hidden
 			text-overflow: ellipsis
 			white-space: nowrap
-	.query-results
+	.operation-results
 		.matched-templates
 			padding: 1rem
 			> .matched-list
@@ -312,7 +312,7 @@ onDestroy(()=> {
 				color: rgb(var(--clr-red))
 				border: solid 1px rgba(var(--clr-red), 0.1)
 				border-radius: 0.25rem
-	.query-errors
+	.operation-errors
 		border: solid 1px rgb(var(--clr-red))
 		.title-wrapper
 			background-color: rgba(var(--clr-red), 0.1)
