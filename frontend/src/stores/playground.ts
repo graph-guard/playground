@@ -412,15 +412,13 @@ class Playground implements Readable<t_$> {
 	public deleteWorkspace(wsID: string): void {
 		this._panicWhenEngineIsIniting()
 
+		let newCreatedWsID: string|null = null
 		this._update(($)=> {
-			if (Object.keys($.workspaces).length < 2) {
-				$.workspaces[wsID].name = ''
-				$.workspaces[wsID].schema = ''
-				$.workspaces[wsID].creation = Date.now()
-				$.workspaces[wsID].templates = [this._newTemplateObj()]
-				$.workspaces[wsID].operations = [this._newOperationObj()]
-			} else {
-				delete $.workspaces[wsID]
+			delete $.workspaces[wsID]
+			if (Object.keys($.workspaces).length < 1) {
+				const newWs = this._newWorkspaceObj()
+				newCreatedWsID = newWs.id
+				$.workspaces[newWs.id] = newWs
 			}
 			this.#errors.update(($)=> {
 				delete $[wsID]
@@ -436,6 +434,9 @@ class Playground implements Readable<t_$> {
 			})
 			return $
 		})
+		if (newCreatedWsID !== null) {
+			this.initEngine(newCreatedWsID)
+		}
 	}
 
 	public updateWorkspace(
@@ -490,11 +491,9 @@ class Playground implements Readable<t_$> {
 			}
 
 			tplID = $.workspaces[wsID].templates[idx].id
-			if ($.workspaces[wsID].templates.length < 2) {
-				$.workspaces[wsID].templates[0].name = ''
-				$.workspaces[wsID].templates[0].source = ''
-			} else {
-				$.workspaces[wsID].templates.splice(idx, 1)
+			$.workspaces[wsID].templates.splice(idx, 1)
+			if ($.workspaces[wsID].templates.length < 1) {
+				$.workspaces[wsID].templates.push(this._newTemplateObj())
 			}
 			return $
 		})
@@ -574,12 +573,9 @@ class Playground implements Readable<t_$> {
 			}
 
 			opID = $.workspaces[wsID].operations[idx].id
-			if ($.workspaces[wsID].operations.length < 2) {
-				$.workspaces[wsID].operations[0].name = ''
-				$.workspaces[wsID].operations[0].source = ''
-				$.workspaces[wsID].operations[0].variables = ''
-			} else {
-				$.workspaces[wsID].operations.splice(idx, 1)
+			$.workspaces[wsID].operations.splice(idx, 1)
+			if ($.workspaces[wsID].operations.length < 1) {
+				$.workspaces[wsID].operations.push(this._newOperationObj())
 			}
 			return $
 		})
