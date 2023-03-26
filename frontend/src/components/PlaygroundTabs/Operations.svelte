@@ -184,7 +184,7 @@ onDestroy(()=> {
 			{#if selOP !== null}
 				<Splitpanes theme='customSplitpanes' horizontal>
 					<Pane snapSize={15}>
-						<div class='pane-contents operation-editor flex flex-col'>
+						<div class='pane-contents operation-editor flex flex-col nowrap'>
 							<EntityEditor
 							name={selOP.name}
 							nameInputLabel='Operation {selOPIdx+1} (untitled)'
@@ -196,7 +196,7 @@ onDestroy(()=> {
 						</div>
 					</Pane>
 					<Pane snapSize={15}>
-						<div class='pane-contents variables-input flex flex-col'>
+						<div class='pane-contents variables-input flex flex-col nowrap'>
 							<header class='title-wrapper flex flex-center-y flex-base-size'>
 								<span class='title'>Variables</span>
 							</header>
@@ -208,10 +208,10 @@ onDestroy(()=> {
 				</Splitpanes>
 			{/if}
 		</Pane>
-		<Pane snapSize={15} size={40}>
+		<Pane snapSize={20} size={40}>
 			<Splitpanes theme='customSplitpanes' horizontal>
 				<Pane snapSize={15}>
-					<div class='pane-contents operation-results flex flex-col'>
+					<div class='pane-contents operation-results flex flex-col nowrap'>
 						<header class='title-wrapper flex flex-center-y flex-base-size gap-05'>
 							<span class='title'>Results</span>
 

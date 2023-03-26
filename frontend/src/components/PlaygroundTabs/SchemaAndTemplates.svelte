@@ -176,7 +176,7 @@ onDestroy(()=> {
 				{/if}
 			</Splitpanes>
 		</Pane>
-		<Pane snapSize={15} size={40}>
+		<Pane snapSize={20} size={40}>
 			<Splitpanes theme='customSplitpanes' horizontal>
 				<Pane snapSize={15}>
 					<div class='pane-contents schema-editor flex flex-col nowrap' class:schema-less={isSchemalessMode}>
